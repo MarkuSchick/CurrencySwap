@@ -23,6 +23,8 @@ dependencies:
 
   - virtualenv=20.0.33
 
+  - seaborn
+  
   - web3
 
   - pip:
