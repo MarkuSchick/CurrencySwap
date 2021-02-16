@@ -58,7 +58,7 @@ def transform_data(data):
     data = _calculate_returns(data)
     return data
 
-@pytask.mark.produces(BLD / "historical_data" / "eurusd.pickle")
+@pytask.mark.produces(BLD / "historical_data" / "raw_data.pickle")
 def task_get_exchange_rate_data(produces):
     eurusd_data = get_data()
     eurusd_data = transform_data(eurusd_data)
