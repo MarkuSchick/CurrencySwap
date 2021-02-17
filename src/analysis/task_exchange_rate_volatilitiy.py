@@ -7,6 +7,7 @@ from datetime import datetime
 from src.config import BLD
 from src.config import SRC
 
+"""
 def _yearslater(years, from_date=None):
     if from_date is None:
         from_date = datetime.now()
@@ -15,25 +16,20 @@ def _yearslater(years, from_date=None):
     except ValueError:
         # Must be 2/29!
         assert from_date.month == 2 and from_date.day == 29 # can be removed
-        return pd.Timestamp(year = from_date.year + years, month = 2,  day = 28)
-
+        return pd.Timestamp(year = from_date.year + years, month = 3,  day = 1)
+"""
 
 def generate_historical_one_year_returns(data, config):
     # initiate empty container
-    simulated_historical_data = []
+    simulated_historical_data = dict()
+    trading_days = config["trading_days"]
+    savings_period_years = config["savings_period_years"]
+    data.dropna(axis = 'index', inplace=True)
 
-    # loop over dates
-    for start_date in data.index[1:]:
-        # fix end date 1 year in advance
-        end_date = _yearslater(config["savings_period_years"], from_date=start_date)
+    for i_start in range(len(data) - trading_days):
+        i_end = i_start + trading_days
+        simulated_historical_data[data.index[i_start]] = data.iloc[i_start: i_end]['log_return'].to_numpy().reshape((trading_days,1))
 
-        if end_date > datetime.today():
-            break
-        else:
-            simulated_historical_data.append(data.loc[start_date:end_date]['log_return'].values)
-
-    print("hello")
-    data = np.concatenate(simulated_historical_data)
     return simulated_historical_data
 
 @pytask.mark.depends_on(
