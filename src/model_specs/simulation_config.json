@@ -1,6 +1,4 @@
 {
-  "savings_period_years": 1,
-  "leverage": 10,
   "trading_days": 262,
   "bootsstrap_sim_num": 100,
   "monte_carlo_sim_num": 100,
