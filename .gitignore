@@ -70,3 +70,4 @@ ___*
 .env/installed_spec.json
 !.pre-commit-config.yaml
 env
+workspace.*

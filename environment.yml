@@ -24,8 +24,12 @@ dependencies:
   - virtualenv=20.0.33
 
   - seaborn
-  
+
+  - recombinator
+
   - web3
+
+  - numba
 
   - pip:
 
@@ -38,4 +42,3 @@ dependencies:
 
 
 
-    
