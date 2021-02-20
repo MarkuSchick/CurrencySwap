@@ -102,7 +102,7 @@ def generate_bootstrapped_returns(data, config):
 specifications = (
     (
         eval(f"generate_{simulation_name}_returns"),
-        BLD / "data" / f"simulated_data_{simulation_name}.pickle",
+        BLD / "simulated_data" / f"simulated_data_{simulation_name}.pickle",
     )
     for simulation_name in ["historical", "bootstrapped"]
 )
