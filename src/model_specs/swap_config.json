@@ -1,4 +1,4 @@
 {
-  "savings_period_years": 1,
-  "leverage": 10
+    "leverage": 10, 
+    "USD_asset_allocation": 0.5
 }
