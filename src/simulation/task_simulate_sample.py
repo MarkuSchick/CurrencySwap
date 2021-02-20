@@ -3,7 +3,7 @@ Generates simulated EURO / USD returns for a period
 specified in simulate_config.json.
 Saves simulated samples as pickle.
 
-Implemented methods: 
+Implemented methods:
 # historical (based on historical 1 year returns)
 # bootstrapped (stationary bootstrapped returns from historical sample)
 
@@ -12,6 +12,7 @@ import json
 import pickle
 
 import numpy as np
+import pandas as pd
 import pytask
 from recombinator.block_bootstrap import stationary_bootstrap
 from recombinator.optimal_block_length import optimal_block_length
@@ -31,21 +32,25 @@ def generate_historical_returns(data, config):
         config (dict): dictionary of simulation parameters
 
     Returns:
-        [np.array(trading_days, K)]: Array of K historical series of
+        [pd.DataFrame(trading_days, K)]: DataFrame of K historical series of
         1 year returns of length trading days
     """
     # settings
     trading_days = config["trading_days"]
+    K = len(data) - trading_days
 
     # initiate empty container
-    simulated_historical_data = []
+    simulated_data = np.empty((K, trading_days))
 
     # generate sample
-    for i_start in range(len(data) - trading_days):
-        i_end = i_start + trading_days
-        simulated_historical_data.append(data[i_start:i_end].reshape((trading_days, 1)))
+    for i in range(K):
+        simulated_data[i, :] = data.iloc[i : i + trading_days]
 
-    simulated_historical_data = np.concatenate(simulated_historical_data)
+    # export as pandas dataFrame
+    simulated_historical_data = pd.DataFrame(
+        data=simulated_data, index=list(data.index[0:K])
+    )
+
     return simulated_historical_data
 
 
@@ -80,16 +85,17 @@ def generate_bootstrapped_returns(data, config):
     np.random.seed(config["simulation_seed"])
 
     # find optimal block length for stationary bootstrap
-    optimal_block_length = _find_optimal_stationary_bootstrap_block_length(data)
+    optimal_block_length = _find_optimal_stationary_bootstrap_block_length(data.values)
 
     # generate block_bootstrap data
     sim_data = stationary_bootstrap(
-        data,
+        data.values,
         block_length=optimal_block_length,
         replications=bootsstrap_sim_num,
         sub_sample_length=trading_days,
     )
 
+    sim_data = pd.DataFrame(data=sim_data)
     return sim_data
 
 
@@ -117,7 +123,7 @@ def task_simulate_sample(depends_on, simulation_function, produces):
 
     # drop first row
     raw_data.dropna(axis="index", inplace=True)
-    log_return = raw_data["log_return"].to_numpy()
+    log_return = raw_data["log_return"]
 
     # load simulation configurations
     sim_config = json.loads(depends_on["sim_config"].read_text(encoding="utf-8"))
@@ -131,10 +137,9 @@ def task_simulate_sample(depends_on, simulation_function, produces):
 
 if __name__ == "__main__":
     # Evaluate production functions.
-    simulation_name = "bootstrapped"
-    produces = BLD / "data" / f"simulated_data_{simulation_name}.pickle"
-
-    simulation_function = generate_bootstrapped_one_year_returns
+    simulation_name = "historical"
+    produces = BLD / "data" / "simulated_data_historical.pickle"
+    simulation_function = generate_historical_returns
 
     depends_on = {
         "sim_config": SRC / "model_specs" / "simulation_config.json",
