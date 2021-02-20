@@ -52,7 +52,7 @@ def payout_currency_swap(
         return_on_usd_deposits (float, optional): Return on usd deposits. Defaults to 0.
 
     Returns:
-        [EURlong_payout, EURshort_payout]: Payout of 1 unit of a EURlong, EURshort 
+        [EURlong_payout, EURshort_payout]: Payout of 1 unit of a EURlong, EURshort
         certificate given economic conditions
     """
     # allocate assets
