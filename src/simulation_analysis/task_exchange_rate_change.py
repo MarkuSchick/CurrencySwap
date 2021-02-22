@@ -5,8 +5,8 @@ import matplotlib.ticker as mticker
 import pytask
 import seaborn as sns
 
-from src.analysis.utility import get_total_exchange_rate_change
 from src.config import BLD
+from src.simulation_analysis.utility import get_total_exchange_rate_change
 
 PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 

@@ -111,7 +111,7 @@ specifications = (
 @pytask.mark.parametrize("simulation_function, produces", specifications)
 @pytask.mark.depends_on(
     {
-        "sim_config": SRC / "model_specs" / "simulation_config.json",
+        "sim_config": SRC / "contract_specs" / "simulation_config.json",
         "raw_data": BLD / "historical_data" / "raw_data.pickle",
     }
 )

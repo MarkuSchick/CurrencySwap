@@ -61,11 +61,11 @@ def payout_currency_swap(
 
     # calculate current value of collateral
     underlying_collateral = _get_collateral_value(
-    euro_deposits,
-    usd_deposits,
-    return_on_euro_deposits,
-    return_on_usd_deposits,
-    final_exchange_rate
+        euro_deposits,
+        usd_deposits,
+        return_on_euro_deposits,
+        return_on_usd_deposits,
+        final_exchange_rate,
     )
 
     # get payout factor
