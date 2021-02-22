@@ -44,16 +44,16 @@ def payout_currency_swap(
     Simulates payoff profile of some currency swap contract.
 
     Args:
-        final_exchange_rate (float): Final EURO/USD exchange rate
-        start_exchange_rate ([type]): Initial EURO/USD exchange rate
+        final_exchange_rate (pd.DataFrame(n,1)): Final EURO/USD exchange rate
+        start_exchange_rate (float): Initial EURO/USD exchange rate
         USD_asset_allocation (float): Share of collateral invested in USD [0,1]
         leverage (float): Leverage (payout) factor
         return_on_euro_deposits (float, optional): Return on euro deposits. Defaults to 0.
         return_on_usd_deposits (float, optional): Return on usd deposits. Defaults to 0.
 
     Returns:
-        [EURlong_payout, EURshort_payout]: Payout of 1 unit of a EURlong, EURshort
-        certificate given economic conditions
+        EURlong_payout (pd.DataFrame(n,1)): Payout of 1 unit of a EURlong
+        EURshort_payout (pd.DataFrame(n,1)): Payout of 1 unit of a EURshort
     """
     # allocate assets
     usd_deposits = USD_asset_allocation
@@ -61,9 +61,11 @@ def payout_currency_swap(
 
     # calculate current value of collateral
     underlying_collateral = _get_collateral_value(
-        euro_deposits,
-        usd_deposits,
-        final_exchange_rate,
+    euro_deposits,
+    usd_deposits,
+    return_on_euro_deposits,
+    return_on_usd_deposits,
+    final_exchange_rate
     )
 
     # get payout factor
