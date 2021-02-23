@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def _convert_to_USD(exchange_rate, EURO_amount):
     return EURO_amount * exchange_rate
 
@@ -44,7 +47,7 @@ def payout_currency_swap(
     Simulates payoff profile of some currency swap contract.
 
     Args:
-        final_exchange_rate (pd.DataFrame(n,1)): Final EURO/USD exchange rate
+        final_exchange_rate (pd.Series(n)): Final EURO/USD exchange rate
         start_exchange_rate (float): Initial EURO/USD exchange rate
         USD_asset_allocation (float): Share of collateral invested in USD [0,1]
         leverage (float): Leverage (payout) factor
@@ -52,8 +55,8 @@ def payout_currency_swap(
         return_on_usd_deposits (float, optional): Return on usd deposits. Defaults to 0.
 
     Returns:
-        EURlong_payout (pd.DataFrame(n,1)): Payout of 1 unit of a EURlong
-        EURshort_payout (pd.DataFrame(n,1)): Payout of 1 unit of a EURshort
+        EURlong_payout (pd.Series(n)): Payout of 1 unit of a EURlong
+        EURshort_payout (pd.Series(n)): Payout of 1 unit of a EURshort
     """
     # allocate assets
     usd_deposits = USD_asset_allocation
@@ -74,7 +77,15 @@ def payout_currency_swap(
     )
 
     # redeem EURlong, EURshort
-    EURlong_payout = EURlong_payout_fac * underlying_collateral
-    EURshort_payout = EURshort_payout_fac * underlying_collateral
+    EURlong_payout = pd.Series(
+        EURlong_payout_fac * underlying_collateral,
+        index=EURlong_payout_fac.index,
+        name="EURlong payout",
+    )
+    EURshort_payout = pd.Series(
+        EURshort_payout_fac * underlying_collateral,
+        index=EURshort_payout_fac.index,
+        name="EURshort payout",
+    )
 
     return EURlong_payout, EURshort_payout
