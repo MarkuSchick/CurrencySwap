@@ -77,15 +77,11 @@ def payout_currency_swap(
     )
 
     # redeem EURlong, EURshort
-    EURlong_payout = pd.Series(
-        EURlong_payout_fac * underlying_collateral,
-        index=EURlong_payout_fac.index,
-        name="EURlong payout",
-    )
-    EURshort_payout = pd.Series(
-        EURshort_payout_fac * underlying_collateral,
+    EURpayout = pd.DataFrame(
+        {
+            "EURlong payout": EURlong_payout_fac * underlying_collateral,
+            "EURshort payout": EURshort_payout_fac * underlying_collateral,
+        },
         index=EURshort_payout_fac.index,
-        name="EURshort payout",
     )
-
-    return EURlong_payout, EURshort_payout
+    return EURpayout
