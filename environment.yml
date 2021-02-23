@@ -19,17 +19,14 @@ dependencies:
   - python=3.8
   - python-graphviz
 
-  - pandas-datareader
-
-  - virtualenv=20.0.33
+  - numba
 
   - seaborn
 
-  - recombinator
+  - virtualenv=20.0.33
 
   - web3
 
-  - numba
 
   - pip:
 
@@ -39,6 +36,7 @@ dependencies:
     - sphinx-autobuild
     - sphinx-rtd-theme
     - sphinxcontrib-bibtex
+    
+    - recombinator
 
-
-
+    - pandas_datareader
