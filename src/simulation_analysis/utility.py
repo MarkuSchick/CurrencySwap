@@ -10,7 +10,9 @@ def get_total_exchange_rate_change(raw_data):
     return total_change
 
 
-def filename_to_metadata(outFile, metadata_file, leverage, USD_asset_allocation):
+def filename_to_metadata(
+    outFile, metadata_file, simulation_name, leverage, USD_asset_allocation
+):
     """Write information about payout rate to pandas dataframe
     with filename as identifier.
     Create new file if it does not exist
@@ -26,6 +28,7 @@ def filename_to_metadata(outFile, metadata_file, leverage, USD_asset_allocation)
         new_row = pd.DataFrame(
             {
                 "filename": outFile,
+                "simulation_name": simulation_name,
                 "leverage": leverage,
                 "USD_asset_allocation": USD_asset_allocation,
             },
@@ -38,6 +41,7 @@ def filename_to_metadata(outFile, metadata_file, leverage, USD_asset_allocation)
         new_file = pd.DataFrame(
             {
                 "filename": outFile,
+                "simulation_name": simulation_name,
                 "leverage": leverage,
                 "USD_asset_allocation": USD_asset_allocation,
             },

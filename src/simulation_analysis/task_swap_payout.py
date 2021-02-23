@@ -45,6 +45,7 @@ specifications = (
         f"simulated_data_{simulation_name}.pickle",
         f"simulated_payout_{simulation_name}_leverage{leverage} \
         _usd_{format_decimal(USD_asset_allocation)}.pickle",
+        simulation_name,
         leverage,
         USD_asset_allocation,
     )
@@ -55,7 +56,7 @@ specifications = (
 
 
 @pytask.mark.parametrize(
-    "inFile, outFile, leverage, USD_asset_allocation",
+    "inFile, outFile, simulation_name, leverage, USD_asset_allocation",
     specifications,
 )
 # fix specifications
@@ -67,7 +68,9 @@ specifications = (
         "metadata_file": BLD / "metadata" / "simulation_payout_metadata.pickle",
     }
 )
-def task_swap_payout(depends_on, inFile, outFile, leverage, USD_asset_allocation):
+def task_swap_payout(
+    depends_on, inFile, outFile, simulation_name, leverage, USD_asset_allocation
+):
 
     # load files
     raw_data = pd.read_pickle(depends_on["inFile_folder"] / inFile)
@@ -79,7 +82,11 @@ def task_swap_payout(depends_on, inFile, outFile, leverage, USD_asset_allocation
 
     # save configurations
     filename_to_metadata(
-        outFile, depends_on["metadata_file"], leverage, USD_asset_allocation
+        outFile,
+        depends_on["metadata_file"],
+        simulation_name,
+        leverage,
+        USD_asset_allocation,
     )
 
     # save files
@@ -103,4 +110,6 @@ if __name__ == "__main__":
     outFile = f"simulated_payout_{simulation_name}_leverage{leverage} \
     _usd_{format_decimal(USD_asset_allocation)}.pickle"
 
-    task_swap_payout(depends_on, inFile, outFile, leverage, USD_asset_allocation)
+    task_swap_payout(
+        depends_on, inFile, outFile, simulation_name, leverage, USD_asset_allocation
+    )
