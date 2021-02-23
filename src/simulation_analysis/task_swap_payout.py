@@ -1,11 +1,13 @@
 import json
-import pickle
 
+import pandas as pd
 import pytask
 
 from src.config import BLD
 from src.config import SRC
 from src.financial_contracts.swap_contract import payout_currency_swap
+from src.simulation_analysis.utility import filename_to_metadata
+from src.simulation_analysis.utility import format_decimal
 from src.simulation_analysis.utility import get_total_exchange_rate_change
 
 
@@ -37,38 +39,68 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
     return payout_data
 
 
+# varying specifications
 specifications = (
     (
-        BLD / "simulated_data" / f"simulated_data_{simulation_name}.pickle",
-        BLD
-        / "simulated_payout"
-        / f"simulated_payout_{simulation_name}_{leverage}_leverage.pickle",
-        SRC / "contract_specs" / "scenario_config.json",
+        f"simulated_data_{simulation_name}.pickle",
+        f"simulated_payout_{simulation_name}_leverage{leverage} \
+        _usd_{format_decimal(USD_asset_allocation)}.pickle",
         leverage,
         USD_asset_allocation,
     )
     for simulation_name in ["historical", "bootstrapped"]
     for leverage in [3, 5, 7, 10]
-    for USD_asset_allocation in [0.5]
+    for USD_asset_allocation in [0, 0.2, 0.4, 0.6, 0.8, 1]
 )
 
 
 @pytask.mark.parametrize(
-    "depends_on, produces, scenario_config, leverage, USD_asset_allocation",
+    "inFile, outFile, leverage, USD_asset_allocation",
     specifications,
 )
-def task_swap_payout(
-    depends_on, produces, leverage, USD_asset_allocation, scenario_config
-):
+# fix specifications
+@pytask.mark.depends_on(
+    {
+        "scenario_config": SRC / "contract_specs" / "scenario_config.json",
+        "inFile_folder": BLD / "simulated_data",
+        "outFile_folder": BLD / "simulated_payout",
+        "metadata_file": BLD / "metadata" / "simulation_payout_metadata.pickle",
+    }
+)
+def task_swap_payout(depends_on, inFile, outFile, leverage, USD_asset_allocation):
+
     # load files
-    with open(depends_on, "rb") as f:
-        raw_data = pickle.load(f)
+    raw_data = pd.read_pickle(depends_on["inFile_folder"] / inFile)
 
     total_change = get_total_exchange_rate_change(raw_data)
     payout_data = calc_final_payout(
-        total_change, leverage, USD_asset_allocation, scenario_config
+        total_change, leverage, USD_asset_allocation, depends_on["scenario_config"]
+    )
+
+    # save configurations
+    filename_to_metadata(
+        outFile, depends_on["metadata_file"], leverage, USD_asset_allocation
     )
 
     # save files
-    with open(produces, "wb") as out_file:
-        pickle.dump(payout_data, out_file)
+    payout_data.to_pickle(depends_on["outFile_folder"] / outFile)
+
+
+if __name__ == "__main__":
+    depends_on = {
+        "scenario_config": SRC / "contract_specs" / "scenario_config.json",
+        "inFile_folder": BLD / "simulated_data",
+        "outFile_folder": BLD / "simulated_payout",
+        "metadata_file": BLD / "metadata" / "simulation_payout_metadata.pickle",
+    }
+
+    leverage = 5
+    USD_asset_allocation = 0.2
+    simulation_name = "historical"
+    scenario_config = SRC / "contract_specs" / "scenario_config.json"
+
+    inFile = f"simulated_data_{simulation_name}.pickle"
+    outFile = f"simulated_payout_{simulation_name}_leverage{leverage} \
+    _usd_{format_decimal(USD_asset_allocation)}.pickle"
+
+    task_swap_payout(depends_on, inFile, outFile, leverage, USD_asset_allocation)
