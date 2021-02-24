@@ -1,6 +1,5 @@
 {
   "trading_days": 262,
   "bootsstrap_sim_num": 100,
-  "monte_carlo_sim_num": 100,
   "simulation_seed": 55
 }

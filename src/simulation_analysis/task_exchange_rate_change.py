@@ -23,6 +23,8 @@ def plot_total_change(data, path):
     fig, ax = plt.subplots()
     fig.suptitle("EURO/USD exchange rate")
 
+    data = data.to_frame(name="Final exchange rate")
+    
     # plot EURO/USD price
     ax.tick_params(labelbottom="off", labelleft="off")
     ax.set_facecolor("azure")
