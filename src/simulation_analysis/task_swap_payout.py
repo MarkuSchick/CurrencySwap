@@ -6,7 +6,6 @@ import pytask
 from src.config import BLD
 from src.config import SRC
 from src.financial_contracts.swap_contract import payout_currency_swap
-from src.simulation_analysis.utility import format_decimal
 from src.simulation_analysis.utility import get_total_exchange_rate_change
 
 
@@ -35,9 +34,8 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
 
     return payout_data
 
-def filename_to_metadata(
-    run_id, simulation_name, leverage, USD_asset_allocation
-):
+
+def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation):
     """Write information about payout rate to pandas dataframe
     with filename as identifier.
 
@@ -51,14 +49,14 @@ def filename_to_metadata(
         [pd.DataFrame]: information about run
     """
     metadata = pd.DataFrame(
-            {
-                "swap_config_id": run_id,
-                "simulation_name": simulation_name,
-                "leverage": leverage,
-                "USD_asset_allocation": USD_asset_allocation,
-            },
-            index=[0],
-        )
+        {
+            "swap_config_id": run_id,
+            "simulation_name": simulation_name,
+            "leverage": leverage,
+            "USD_asset_allocation": USD_asset_allocation,
+        },
+        index=[0],
+    )
     return metadata
 
 
@@ -68,12 +66,14 @@ specifications = (
         f"simulated_data_{simulation_name}.pickle",
         f"simulated_payout_{simulation_name}.pickle",
         f"metadata_payout_{simulation_name}.pickle",
-        simulation_name
+        simulation_name,
     )
     for simulation_name in ["historical", "bootstrapped"]
 )
+
+
 @pytask.mark.parametrize(
-    "inFile, outFile, metadataFile, simulation_name", 
+    "inFile, outFile, metadataFile, simulation_name",
     specifications,
 )
 # fix specifications
@@ -86,22 +86,21 @@ specifications = (
         "metadata_folder": BLD / "metadata",
     }
 )
-def task_swap_payout(
-    depends_on, inFile, outFile, metadataFile, simulation_name
-):
+def task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name):
     # initialize
     swap_config_id = 0
     payout_data_list = []
     meta_data_list = []
-    
+
     # parse json data
     swap_config = json.loads(depends_on["swap_config"].read_text(encoding="utf-8"))
-    scenario_config = json.loads(depends_on["scenario_config"].read_text(encoding="utf-8"))
-
+    scenario_config = json.loads(
+        depends_on["scenario_config"].read_text(encoding="utf-8")
+    )
 
     # calculate payout for all configurations
-    for leverage in swap_config['leverage']:
-        for USD_asset_allocation in swap_config['USD_asset_allocation']:
+    for leverage in swap_config["leverage"]:
+        for USD_asset_allocation in swap_config["USD_asset_allocation"]:
 
             # load files
             raw_data = pd.read_pickle(depends_on["inFile_folder"] / inFile)
@@ -109,27 +108,27 @@ def task_swap_payout(
             # simulate payout given parameterization
             total_change = get_total_exchange_rate_change(raw_data)
             payout = calc_final_payout(
-                total_change, leverage, USD_asset_allocation, scenario_config 
+                total_change, leverage, USD_asset_allocation, scenario_config
             )
             payout["swap_config_id"] = swap_config_id
             payout_data_list.append(payout)
 
             # save metadata
-            meta_data_list.append(filename_to_metadata(
-                            swap_config_id,
-                            simulation_name,
-                            leverage,
-                            USD_asset_allocation)
+            meta_data_list.append(
+                filename_to_metadata(
+                    swap_config_id, simulation_name, leverage, USD_asset_allocation
+                )
             )
-            swap_config_id += 1                               
+            swap_config_id += 1
 
     # append datafiles
-    payout_data = pd.concat(payout_data_list)
-    meta_data = pd.concat(meta_data_list)
+    payout_data = pd.concat(payout_data_list).set_index("swap_config_id")
+    meta_data = pd.concat(meta_data_list).set_index("swap_config_id")
 
     # save files
     payout_data.to_pickle(depends_on["outFile_folder"] / outFile)
     meta_data.to_pickle(depends_on["metadata_folder"] / metadataFile)
+
 
 if __name__ == "__main__":
     depends_on = {
@@ -147,6 +146,4 @@ if __name__ == "__main__":
     outFile = f"simulated_payout_{simulation_name}.pickle"
     metadataFile = f"metadata_payout_{simulation_name}.pickle"
 
-    task_swap_payout(
-        depends_on, inFile, outFile, metadataFile, simulation_name
-    )
+    task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name)
