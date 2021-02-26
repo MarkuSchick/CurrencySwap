@@ -25,7 +25,6 @@ dependencies:
 
   - virtualenv=20.0.33
 
-  - web3
 
 
   - pip:
@@ -36,7 +35,9 @@ dependencies:
     - sphinx-autobuild
     - sphinx-rtd-theme
     - sphinxcontrib-bibtex
-    
+
     - recombinator
 
     - pandas_datareader
+
+    - web3

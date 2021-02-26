@@ -7,6 +7,11 @@ Implemented methods:
 # historical (based on historical 1 year returns)
 # bootstrapped (stationary bootstrapped returns from historical sample)
 
+Bootstrapping is done with function from
+https://github.com/InvestmentSystems/recombinator
+
+Further simulation function can be parsed as arguments to the iterator object
+specifications.
 """
 import json
 import pickle
@@ -28,12 +33,12 @@ def generate_historical_returns(data, config):
     of 1 year (==trading days) on each other
 
     Args:
-        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns
-        config (dict): dictionary of simulation parameters
+        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.
+        config (dict): dictionary of simulation parameters.
 
     Returns:
-        [pd.DataFrame(trading_days, K)]: DataFrame of K historical series of
-        1 year returns of length trading days
+        pd.DataFrame(trading_days, K): DataFrame of K historical series of
+        1 year returns of length trading days.
     """
     # settings
     trading_days = config["trading_days"]
@@ -54,7 +59,7 @@ def generate_historical_returns(data, config):
     return simulated_historical_data
 
 
-def _find_optimal_stationary_bootstrap_block_length(y):
+def find_optimal_stationary_bootstrap_block_length(y):
     """The first number is the optimal block length for a stationary
     bootstrap, while the second number refers to the optimal block length
     for the circular bootstrap.
@@ -71,12 +76,13 @@ def generate_bootstrapped_returns(data, config):
     block length is computed in program
 
     Args:
-        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns
-        config (dict): dictionary of simulation parameters
+        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.
+
+        config (dict): dictionary of simulation parameters.
 
     Returns:
-        [np.array(trading_days, bootsstrap_sim_num)]: Array of bootsstrap_sim_num
-        bootstrapped 1 year returns of length trading days
+        np.array(trading_days, bootsstrap_sim_num): Array of bootsstrap_sim_num
+        bootstrapped 1 year returns of length trading days.
     """
 
     # settings
@@ -85,7 +91,7 @@ def generate_bootstrapped_returns(data, config):
     np.random.seed(config["simulation_seed"])
 
     # find optimal block length for stationary bootstrap
-    optimal_block_length = _find_optimal_stationary_bootstrap_block_length(data.values)
+    optimal_block_length = find_optimal_stationary_bootstrap_block_length(data.values)
 
     # generate block_bootstrap data
     sim_data = stationary_bootstrap(
@@ -123,7 +129,7 @@ def task_simulate_sample(depends_on, simulation_function, produces):
 
     # drop first row
     raw_data.dropna(axis="index", inplace=True)
-    log_return = raw_data["log_return"]
+    log_return = raw_data["log_return"]  # .sub(raw_data["log_return"].mean()) #de-mean
 
     # load simulation configurations
     sim_config = json.loads(depends_on["sim_config"].read_text(encoding="utf-8"))
@@ -142,7 +148,7 @@ if __name__ == "__main__":
     simulation_function = generate_historical_returns
 
     depends_on = {
-        "sim_config": SRC / "model_specs" / "simulation_config.json",
+        "sim_config": SRC / "contract_specs" / "simulation_config.json",
         "raw_data": BLD / "historical_data" / "raw_data.pickle",
     }
 

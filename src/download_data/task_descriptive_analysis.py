@@ -11,12 +11,12 @@ PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 
 
 def plot_historical_timeseries(euro_usd_pd, path):
-    """Plot the mean run time of the fast_batch_update function depending on the
-    number of observations
-        Args:
-        euro_usd_pd (pd.DataFrame): Pandas DataFrame daily data on price, percentage
-        change, log return of the EURO/USD exchange rate and DATE as index
-        path (string): path for output
+    """Plot the historical EURO / USD exchange rate and percentage returns
+
+    Args:
+        euro_usd_pd (pd.DataFrame): daily EURO / USD data (must include price,
+                                     pct_change and date as index).
+        path (string): path to output graph.
     """
 
     # load data to dataframe
@@ -69,10 +69,3 @@ def task_descriptive_analysis(depends_on, produces):
         raw_data = pickle.load(f)
 
     plot_historical_timeseries(raw_data, produces)
-
-
-if __name__ == "__main__":
-    # Evaluate production functions.
-    depends_on = BLD / "historical_data" / "raw_data.pickle"
-    produces = BLD / "figures" / "euro_usd_timeseries.png"
-    task_descriptive_analysis(depends_on, produces)

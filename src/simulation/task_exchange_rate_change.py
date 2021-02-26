@@ -15,8 +15,8 @@ def plot_total_change(data, path):
     """Plot the final exchange rate resulting from 1 year exchange rate
     movements
     Args:
-    data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements
-    path (string): path for output
+    data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements.
+    path (string): path of output file.
     """
 
     # set up multiple graphs
@@ -24,7 +24,7 @@ def plot_total_change(data, path):
     fig.suptitle("EURO/USD exchange rate")
 
     data = data.to_frame(name="Final exchange rate")
-    
+
     # plot EURO/USD price
     ax.tick_params(labelbottom="off", labelleft="off")
     ax.set_facecolor("azure")

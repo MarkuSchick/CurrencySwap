@@ -13,12 +13,12 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
     """[summary]
 
     Args:
-        total_change ([type]): [description]
-        swap_config ([type]): [description]
-        scenario_config ([type]): [description]
+        total_change ([type]): [description].
+        swap_config ([type]): [description].
+        scenario_config ([type]): [description].
 
     Returns:
-        [type]: [description]
+        [type]: [description].
     """
 
     # calculate payout data
@@ -31,7 +31,18 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
         USD_asset_allocation=USD_asset_allocation,
         **scenario_config,
     )
-
+    payout_data = payout_data.rename(
+        columns={
+            "EURlong payout": "EURlong payout in USD",
+            "EURshort payout": "EURshort payout in USD",
+        }
+    )
+    payout_data["EURlong payout in EURO"] = payout_data["EURlong payout in USD"].div(
+        payout_data["exchange_rate"]
+    )
+    payout_data["EURshort payout in EURO"] = payout_data["EURshort payout in USD"].div(
+        payout_data["exchange_rate"]
+    )
     return payout_data
 
 
@@ -40,13 +51,13 @@ def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation
     with filename as identifier.
 
     Args:
-        run_id (id): Id of simulation configuration
-        metadata_file (str): Path of metadata file
-        leverage (float): Leverage factor
-        USD_asset_allocation (float): Assets invested in USD
+        run_id (id): Id of simulation configuration.
+        metadata_file (str): Path of metadata file.
+        leverage (float): Leverage factor.
+        USD_asset_allocation (float): Assets invested in USD.
 
     Returns:
-        [pd.DataFrame]: information about run
+        [pd.DataFrame]: information about run.
     """
     metadata = pd.DataFrame(
         {

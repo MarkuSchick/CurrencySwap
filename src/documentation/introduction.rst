@@ -5,33 +5,30 @@
 Introduction
 ************
 
-You can find the documentation on the rationale, pytask, and more background at https://econ-project-templates.readthedocs.io/en/stable/.
+The Project analyses the historical EURO/USD exchange rate to find parameters for a potential Currency Swap living on a blockchain.
 
-The Python version of the template uses a modified version of Stachurski's and Sargent's code accompanying their Online Course :cite:`StachurskiSargent13` for Schelling's (1969, :cite:`Schelling69`) segregation model as the running example.
+We try various asset allocations and leverage factors to find a optimal design for such contract.
+Competing designs can be easily added to the contracts folder and we can perform analyses for them.
+Graphs are produced to visualize the relationship between historical EURO/USD volatility, contract parameterization
+and (realized) payout. For this we take an backward perspective and simulated returns based on historical data of the EURO / USD exchange rate (1999-Today).
 
+The aim is not to find a prediction of future of exchange rate movements, but show how the swap contract
+would have payed out in the past.
+The aim is to find the highest leverage factor available possible to pay out with a limited amount of collateral.
+Background: Since financial claims can not be *enforced* on a blockchain we need to have hold collateral to full fill these claims.
+
+They are exported to a short presentation and research paper.
 
 .. _getting_started:
 
-Getting started
+The project’s workflow
 ===============
 
-**This assumes you have completed the steps in the `Getting Started section of the documentation <https://econ-project-templates.readthedocs.io/en/stable/getting_started.html>`_ and **everything worked.**
+The project follows the following steps:
 
-The logic of the project template works by step of the analysis:
+1. Download data
+2. Simulate 1-Year EURO/USD returns
+3. Simulated payouts given Swap contract configurations
+4. Research paper and presentations
 
-1. Data management
-2. The actual estimations / simulations / ?
-3. Visualisation and results formatting (e.g. exporting of LaTeX tables)
-4. Research paper and presentations.
-
-It can be useful to have code and model parameters available to more than one of these steps, in that case see sections :ref:`model_specifications`, :ref:`model_code`, and :ref:`library`.
-
-First of all, think about whether this structure fits your needs -- if it does not, you need to adjust (delete/add/rename) directories and files in the following locations:
-
-    * Directories in **src/**;
-    * The documentation source files in **src/documentation/** (Note: These should follow the directories in **src** exactly);
-    * The list of included documentation source files in **src/documentation/index.rst**
-
-Later adjustments should be painlessly possible, so things won't be set in stone.
-
-Once you have done that, move your source data to **src/original_data/** and start filling up the actual steps of the project workflow (data management, analysis, final steps, paper). All you should need to worry about is to specify the tasks for `pytask`.
+Graphs are created along the way.

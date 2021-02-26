@@ -46,7 +46,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "Currency Swap"
-copyright = "2019-, Markus Schick"
+copyright = "2021-, Markus Schick"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

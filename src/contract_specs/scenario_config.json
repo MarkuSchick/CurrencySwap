@@ -1,4 +1,4 @@
 {
-  "return_on_euro_deposits": 0.05,
-  "return_on_usd_deposits": 0.05
+  "return_on_euro_deposits": 0.0,
+  "return_on_usd_deposits": 0.0
 }

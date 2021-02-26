@@ -1,8 +1,6 @@
 """ Downloads the daily EURO/USD exchange rate from
-FRED and saves output as a pickle
-see: https://fred.stlouisfed.org/series/DEXUSEU
-Does not use any checks if download was successfull
-since this is historical data.
+FRED and saves output as a pickle.
+url: https://fred.stlouisfed.org/series/DEXUSEU
 """
 import datetime
 import pickle
