@@ -1,75 +1,80 @@
 
+import pickle
 import pandas as pd
-
 import pytask
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import pytask
+import seaborn as sns
+
+PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
+
 from src.config import BLD
-from src.simulation_analysis.utility import get_pickle_in_directory
 
 
+def plot_data_with_negative_payoff(negative_payoffs_share_long, path):
+
+    sns.set_theme()
 
 
-def _get_out_name_file(original_name, out_path):
-    out_filename = original_name.replace("simulated_payout", "simulated_payout").replace(
-        ".pickle", ".png")
-    out_filename_path = out_path / out_filename
-    return out_filename_path
+    # Load the example flights dataset and convert to long-form
+    negative_payoffs_share_long = negative_payoffs_share_long.rename(columns={"leverage": "Leverage factor", "USD_asset_allocation": "Share of assets invested in USD"})
+    negative_payoffs_share = negative_payoffs_share_long.pivot("Leverage factor", "Share of assets invested in USD", "negative_payoff")
 
+    # Draw a heatmap with the numeric values in each cell
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-def _plot_probability_bound(raw_data, out_name):
-    d1, d2 = raw_data
-    print("here")
+    fig.suptitle("Share of historic with reserves < payoff")
+    sns.heatmap(negative_payoffs_share, ax=ax, fmt=".1%", vmin=0, vmax=0.05, cmap="Reds")
 
-# varying specifications
+    # format
+    for t in ax.texts: t.set_text(t.get_text() + " %")
+
+    # save result to folder
+    fig.savefig(path)
+
+def _aggregate_data_with_negative_payoff(data):
+    data['negative_payoff'] = (data[['EURlong payout','EURshort payout']] < 0).any(axis = 'columns')
+    data_with_negative_payoff = data.groupby('swap_config_id')[['negative_payoff']].mean()
+    return data_with_negative_payoff
+
+def _merge_on_metadata(data, metadata):
+    merged_dataset = data.merge(metadata, left_index =True, right_index=True, validate="one_to_one", indicator=True)
+    assert not (merged_dataset["_merge"] != "both").any(), "Rows can not be merged/ Metadata fraudulent"
+    merged_dataset.drop(columns = ["_merge"], inplace=True)
+    return merged_dataset
+
+def get_data_with_negative_payoff(data, metadata):
+    data_with_negative_payoff = _aggregate_data_with_negative_payoff(data)
+    data_with_negative_payoff = _merge_on_metadata(data_with_negative_payoff, metadata)
+    return data_with_negative_payoff
+
 specifications = (
     (
-        f"simulated_data_{simulation_name}.pickle",
-        f"simulated_payout_{simulation_name}.pickle",
-        f"metadata_payout_{simulation_name}.pickle",
-        simulation_name
+        BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle",
+        BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle",
+        BLD / "figures" / f"payout_{simulation_name}.png"
     )
     for simulation_name in ["historical", "bootstrapped"]
 )
 @pytask.mark.parametrize(
-    "inFile, outFile, metadataFile, simulation_name", 
-    specifications,
+    "data_path, metadata_path, produces", specifications,
 )
-# fix specifications
-@pytask.mark.depends_on(
-    {
-        "scenario_config": SRC / "contract_specs" / "scenario_config.json",
-        "swap_config": SRC / "contract_specs" / "swap_config.json",
-        "inFile_folder": BLD / "simulated_data",
-        "outFile_folder": BLD / "simulated_payout",
-        "metadata_folder": BLD / "metadata",
-    }
-)
-def task_swap_payout_analysis(depends_on, produces):
+def task_swap_payout_analysis(data_path, metadata_path, produces):
 
-    simulation_overview = pd.read_pickle(depends_on["metadata_file"])
-    
+    # load files
+    data = pd.read_pickle(data_path)
+    metadata = pd.read_pickle(metadata_path)
 
-    filenames = _get_pickle_in_directory(depends_on["data_folder"])
-    
-
-    for file_name in filenames:
-
-        # load files
-
-
-        out_filename_path = _get_out_name_file(file_name, produces)
-
-        _plot_probability_bound(raw_data, out_filename_path)
-   
+    data_with_negative_payoff = get_data_with_negative_payoff(data, metadata)
+    plot_data_with_negative_payoff(data_with_negative_payoff, produces)
 
 
 if __name__ == "__main__":
-    depends_on = {
-    "data_folder": BLD / "simulated_payout",
-    "metadata_file": BLD / "metadata" / "simulation_payout_metadata.pickle"
-    }
-    produces =  BLD / "figures"
+    simulation_name = "historical"
+    data_path = BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle"
+    metadata_path = BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle"
+    produces = BLD / "figures" / f"payout_{simulation_name}.png"
 
-    task_swap_payout_analysis(depends_on, produces)
-
-"""
+    task_swap_payout_analysis(data_path, metadata_path, produces)
