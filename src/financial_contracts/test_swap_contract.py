@@ -60,8 +60,8 @@ def test_swap_small_exchange_rate_change_euro_rise(default_data):
     realized_payout = payout_currency_swap(**default_data)
     expected_payout = pd.DataFrame(
         {
-            "EURlong payout": np.ones(3) + 0.5 + 0.075,
-            "EURshort payout": np.ones(3) - 0.5 + 0.025,
+            "EURlong payout": np.ones(3) + 0.5,
+            "EURshort payout": np.ones(3) - 0.5 + 0.1,
         }
     )
 
@@ -74,8 +74,8 @@ def test_swap_small_exchange_rate_change_euro_fall(default_data):
     realized_payout = payout_currency_swap(**default_data)
     expected_payout = pd.DataFrame(
         {
-            "EURlong payout": np.ones(3) - 0.5 - 0.025,
-            "EURshort payout": np.ones(3) + 0.5 - 0.075,
+            "EURlong payout": np.ones(3) - 0.5,
+            "EURshort payout": np.ones(3) + 0.5 - 0.1,
         }
     )
 
