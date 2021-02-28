@@ -7,6 +7,7 @@ to create the environment from the file.
 Run:
 
 conda develop .
+
 pytask
 
 
