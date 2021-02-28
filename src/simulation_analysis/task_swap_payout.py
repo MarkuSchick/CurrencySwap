@@ -23,7 +23,7 @@ def calc_final_payout(
         scenario_config (dict): assumed macroeconomic conditions.
 
     Returns:
-        [pd.DataFrame]: Payout of swap contract (in EURO & USD).
+        (pd.DataFrame): Payout of swap contract (in EURO & USD).
     """
     assert leverage > 1, "Leverage factor must be higher than 1"
     assert 0 <= USD_asset_allocation <= 1, "Share of assets invested must be positive"
@@ -48,6 +48,7 @@ def calc_final_payout(
             "EURshort payout": "EURshort payout in USD",
         }
     )
+    payout_data["exchange_rate"] = final_exchange_rate
     payout_data["EURlong payout in EURO"] = payout_data["EURlong payout in USD"].div(
         payout_data["exchange_rate"]
     )
@@ -67,7 +68,7 @@ def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation
         USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.
 
     Returns:
-        [pd.DataFrame]: background information of the simulation run.
+        (pd.DataFrame): background information of the simulation run.
     """
     metadata = pd.DataFrame(
         {

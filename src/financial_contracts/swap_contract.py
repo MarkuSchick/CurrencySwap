@@ -95,7 +95,6 @@ def payout_currency_swap(
 
     EURpayout = pd.DataFrame(
         {
-            "exchange_rate": final_exchange_rate,
             "EURlong payout": eurlong_payout,
             "EURshort payout": eurshort_payout,
         },

@@ -1,8 +1,7 @@
-""" Testing the payout currency swap function
-We test along 2 dimensions:
-1) exchange rate changes
-2) asset allocations
-
+""" Testing the payout of the Currency Swap.
+We test along 2 dimensions: |
+1) exchange rate changes |
+2) asset allocations |
 
 """
 import numpy as np
