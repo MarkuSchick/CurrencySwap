@@ -16,7 +16,7 @@ def calc_final_payout(
     and configurations
 
     Args:
-        cumulative_forex_change (pd.Series): cumulative EUR/USD exchange rate change over 1 
+        cumulative_forex_change (pd.Series): cumulative EUR/USD exchange rate change over 1
         year.
         leverage (float): Leverage factor of the currency swap. Must be larger than 1.
         USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.
@@ -63,8 +63,8 @@ def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation
     Args:
         run_id (id): Id of simulation configuration.
         simulation_name (str): Path of metadata file.
-        leverage (float): Leverage factor.
-        USD_asset_allocation (float): Assets invested in USD.
+        leverage (float): Leverage factor of the currency swap
+        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.
 
     Returns:
         [pd.DataFrame]: background information of the simulation run.
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         "metadata_folder": BLD / "metadata",
     }
 
-    simulation_name = "historical"
+    simulation_name = "bootstrapped"
     scenario_config = SRC / "contract_specs" / "scenario_config.json"
 
     inFile = f"simulated_data_{simulation_name}.pickle"
