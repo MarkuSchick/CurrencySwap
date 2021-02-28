@@ -1,14 +1,17 @@
-Run:
+# Install the environment:
+Type
 
-conda env create -f environment.yml
+`conda env create -f environment.yml`
 
 to create the environment from the file.
 
-Run:
+# Run the project:
 
-conda develop .
+Type
 
-pytask
+`conda develop .`
+
+`pytask`
 
 
 to run the project
