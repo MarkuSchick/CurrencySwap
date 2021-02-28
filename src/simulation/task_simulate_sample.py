@@ -31,7 +31,7 @@ def generate_historical_returns(data, config):
     """
     Stack vectors of (all) historical periods starting
     from the introduction of the EURO in 1999 of length
-    of 1 year (==trading days) on each other
+    of 1 year next to each other
 
     Args:
         data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.

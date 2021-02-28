@@ -1,3 +1,5 @@
+""" Plot the distribution of 1-Year EURO/USD returns
+"""
 import pickle
 
 import matplotlib.pyplot as plt
@@ -12,8 +14,9 @@ PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 
 
 def plot_total_change(data, path):
-    """Plot the final exchange rate resulting from 1 year exchange rate
-    movements
+    """
+    Plot the final exchange rate resulting from 1 year exchange rate
+    returns
 
     Args:
         data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements.
