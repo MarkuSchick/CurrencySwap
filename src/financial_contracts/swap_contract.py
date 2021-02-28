@@ -47,7 +47,7 @@ def payout_currency_swap(
     Simulates payoff profile of some currency swap contract.
 
     Args:
-        final_exchange_rate (pd.Series(n)): Final EURO/USD exchange rate.
+        final_exchange_rate (pd.Series): Final EURO/USD exchange rate.
         start_exchange_rate (float): Initial EURO/USD exchange rate.
         USD_asset_allocation (float): Share of collateral invested in USD [0,1].
         leverage (float): Leverage (payout) factor.
@@ -55,8 +55,7 @@ def payout_currency_swap(
         return_on_usd_deposits (float): Return on usd deposits.
 
     Returns:
-        EURlong_payout (pd.Series(n)): Payout of 1 unit of a EURlong.
-        EURshort_payout (pd.Series(n)): Payout of 1 unit of a EURshort.
+        EURpayout (pd.DataFrame): Payout of EURlong / EURshort certificate
     """
     # allocate assets
     euro_deposits = 2 * (1 - USD_asset_allocation) / start_exchange_rate

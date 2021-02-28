@@ -14,9 +14,10 @@ PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 def plot_total_change(data, path):
     """Plot the final exchange rate resulting from 1 year exchange rate
     movements
+
     Args:
-    data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements.
-    path (string): path of output file.
+        data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements.
+        path (string): path of output file.
     """
 
     # set up multiple graphs

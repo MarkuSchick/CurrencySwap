@@ -9,21 +9,30 @@ from src.financial_contracts.swap_contract import payout_currency_swap
 from src.simulation_analysis.utility import get_total_exchange_rate_change
 
 
-def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_config):
-    """[summary]
+def calc_final_payout(
+    cumulative_forex_change, leverage, USD_asset_allocation, scenario_config
+):
+    """Calculate the finale payout of the currency swap contract given macroeconomic conditions
+    and configurations
 
     Args:
-        total_change ([type]): [description].
-        swap_config ([type]): [description].
-        scenario_config ([type]): [description].
+        cumulative_forex_change (pd.Series): cumulative EUR/USD exchange rate change over 1 
+        year.
+        leverage (float): Leverage factor of the currency swap. Must be larger than 1.
+        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.
+        scenario_config (dict): assumed macroeconomic conditions.
 
     Returns:
-        [type]: [description].
+        [pd.DataFrame]: Payout of swap contract (in EURO & USD).
     """
+    assert leverage > 1, "Leverage factor must be higher than 1"
+    assert 0 <= USD_asset_allocation <= 1, "Share of assets invested must be positive"
+
+    # initialize
+    start_exchange_rate = 1
+    final_exchange_rate = start_exchange_rate + cumulative_forex_change
 
     # calculate payout data
-    start_exchange_rate = 1
-    final_exchange_rate = start_exchange_rate + total_change
     payout_data = payout_currency_swap(
         final_exchange_rate=final_exchange_rate,
         start_exchange_rate=start_exchange_rate,
@@ -31,6 +40,8 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
         USD_asset_allocation=USD_asset_allocation,
         **scenario_config,
     )
+
+    # calculate payout in EURO terms
     payout_data = payout_data.rename(
         columns={
             "EURlong payout": "EURlong payout in USD",
@@ -47,17 +58,16 @@ def calc_final_payout(total_change, leverage, USD_asset_allocation, scenario_con
 
 
 def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation):
-    """Write information about payout rate to pandas dataframe
-    with filename as identifier.
+    """Write information about simulation configurations to a pd.DataFrame
 
     Args:
         run_id (id): Id of simulation configuration.
-        metadata_file (str): Path of metadata file.
+        simulation_name (str): Path of metadata file.
         leverage (float): Leverage factor.
         USD_asset_allocation (float): Assets invested in USD.
 
     Returns:
-        [pd.DataFrame]: information about run.
+        [pd.DataFrame]: background information of the simulation run.
     """
     metadata = pd.DataFrame(
         {
@@ -117,19 +127,19 @@ def task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name)
             raw_data = pd.read_pickle(depends_on["inFile_folder"] / inFile)
 
             # simulate payout given parameterization
-            total_change = get_total_exchange_rate_change(raw_data)
+            cumulative_change = get_total_exchange_rate_change(raw_data)
             payout = calc_final_payout(
-                total_change, leverage, USD_asset_allocation, scenario_config
+                cumulative_change, leverage, USD_asset_allocation, scenario_config
             )
             payout["swap_config_id"] = swap_config_id
             payout_data_list.append(payout)
 
             # save metadata
-            meta_data_list.append(
-                filename_to_metadata(
-                    swap_config_id, simulation_name, leverage, USD_asset_allocation
-                )
+            meta = filename_to_metadata(
+                swap_config_id, simulation_name, leverage, USD_asset_allocation
             )
+            meta_data_list.append(meta)
+
             swap_config_id += 1
 
     # append datafiles

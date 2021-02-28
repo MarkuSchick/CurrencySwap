@@ -28,7 +28,7 @@ The project follows the following steps:
 
 1. Download data
 2. Simulate 1-Year EURO/USD returns
-3. Simulated payouts given Swap contract configurations
+3. Simulate payouts given Swap contract configurations
 4. Research paper and presentations
 
 Graphs are created along the way.

@@ -3,12 +3,13 @@ Generates simulated EURO / USD returns for a period
 specified in simulate_config.json.
 Saves simulated samples as pickle.
 
-Implemented methods:
-# historical (based on historical 1 year returns)
-# bootstrapped (stationary bootstrapped returns from historical sample)
+Implemented methods:|
+# historical (based on historical 1 year returns) |
+# bootstrapped (stationary bootstrapped returns from historical sample) |
 
-Bootstrapping is done with function from
-https://github.com/InvestmentSystems/recombinator
+Bootstrapping is done with the recombinator package.
+See: https://github.com/InvestmentSystems/recombinator
+
 
 Further simulation function can be parsed as arguments to the iterator object
 specifications.
@@ -59,7 +60,7 @@ def generate_historical_returns(data, config):
     return simulated_historical_data
 
 
-def find_optimal_stationary_bootstrap_block_length(y):
+def _find_optimal_stationary_bootstrap_block_length(y):
     """The first number is the optimal block length for a stationary
     bootstrap, while the second number refers to the optimal block length
     for the circular bootstrap.
@@ -77,12 +78,10 @@ def generate_bootstrapped_returns(data, config):
 
     Args:
         data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.
-
         config (dict): dictionary of simulation parameters.
 
     Returns:
-        np.array(trading_days, bootsstrap_sim_num): Array of bootsstrap_sim_num
-        bootstrapped 1 year returns of length trading days.
+        np.array(trading_days, bootsstrap_sim_num): Array of bootstrapped 1 year returns
     """
 
     # settings
@@ -91,7 +90,7 @@ def generate_bootstrapped_returns(data, config):
     np.random.seed(config["simulation_seed"])
 
     # find optimal block length for stationary bootstrap
-    optimal_block_length = find_optimal_stationary_bootstrap_block_length(data.values)
+    optimal_block_length = _find_optimal_stationary_bootstrap_block_length(data.values)
 
     # generate block_bootstrap data
     sim_data = stationary_bootstrap(
