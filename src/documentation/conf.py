@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "1.1"
+needs_sphinx = "1.3"
 
 # Add any Sphinx extension module names here, as strings.
 # They can be extensions coming with Sphinx (named "sphinx.ext.*")
@@ -29,6 +29,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon"
 ]
 bibtex_bibfiles = ["refs.bib"]
 
