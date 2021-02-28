@@ -56,7 +56,10 @@ def generate_historical_returns(data, config):
     simulated_historical_data = pd.DataFrame(
         data=simulated_data, index=list(data.index[0:K])
     )
-
+    assert simulated_historical_data.shape == (
+        K,
+        trading_days,
+    ), "Unexpected outgoing shape"
     return simulated_historical_data
 
 
@@ -93,15 +96,19 @@ def generate_bootstrapped_returns(data, config):
     optimal_block_length = _find_optimal_stationary_bootstrap_block_length(data.values)
 
     # generate block_bootstrap data
-    sim_data = stationary_bootstrap(
+    simulated_bootstrapped_data = stationary_bootstrap(
         data.values,
         block_length=optimal_block_length,
         replications=bootsstrap_sim_num,
         sub_sample_length=trading_days,
     )
 
-    sim_data = pd.DataFrame(data=sim_data)
-    return sim_data
+    simulated_bootstrapped_data = pd.DataFrame(data=simulated_bootstrapped_data)
+    assert simulated_bootstrapped_data.shape == (
+        bootsstrap_sim_num,
+        trading_days,
+    ), "Unexpected outgoing shape"
+    return simulated_bootstrapped_data
 
 
 specifications = (
@@ -142,9 +149,9 @@ def task_simulate_sample(depends_on, simulation_function, produces):
 
 if __name__ == "__main__":
     # Evaluate production functions.
-    simulation_name = "historical"
-    produces = BLD / "data" / "simulated_data_historical.pickle"
-    simulation_function = generate_historical_returns
+    simulation_name = "bootstrapped"
+    produces = BLD / "simulated_data" / "simulated_data_historical.pickle"
+    simulation_function = eval(f"generate_{simulation_name}_returns")
 
     depends_on = {
         "sim_config": SRC / "contract_specs" / "simulation_config.json",
