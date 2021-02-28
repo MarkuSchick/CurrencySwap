@@ -1,5 +1,5 @@
 {
   "trading_days": 262,
-  "bootsstrap_sim_num": 100,
+  "bootsstrap_sim_num": 5000,
   "simulation_seed": 55
 }
