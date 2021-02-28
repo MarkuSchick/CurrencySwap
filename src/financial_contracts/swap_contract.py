@@ -49,14 +49,17 @@ def payout_currency_swap(
     Args:
         final_exchange_rate (pd.Series): Final EURO/USD exchange rate.
         start_exchange_rate (float): Initial EURO/USD exchange rate.
-        USD_asset_allocation (float): Share of collateral invested in USD [0,1].
-        leverage (float): Leverage (payout) factor.
+        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.
+        leverage (float): Leverage factor of the currency swap. Must be larger than 1.
         return_on_euro_deposits (float): Return on euro deposits.
         return_on_usd_deposits (float): Return on usd deposits.
 
     Returns:
         EURpayout (pd.DataFrame): Payout of EURlong / EURshort certificate
     """
+    assert leverage > 1, "Leverage factor must be higher than 1"
+    assert 0 <= USD_asset_allocation <= 1, "Share of assets invested must be positive"
+
     # allocate assets
     euro_deposits = 2 * (1 - USD_asset_allocation) / start_exchange_rate
     usd_deposits = 2 * USD_asset_allocation
