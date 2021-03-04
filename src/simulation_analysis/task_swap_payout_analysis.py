@@ -163,7 +163,7 @@ def plot_eurshort_payout(runs_eurshort_payout, figure_path, simulation_name):
     sns.set_theme()
     # Initialize graph
     fig, ax = plt.subplots()
-    fig.suptitle("Eurlong payout depending on certificate payout of certificate")
+    fig.suptitle("Eurshort payout depending on certificate payout of certificate")
 
     # Plot average payout
     plot_runs_eurshort_payout = runs_eurshort_payout.rename(

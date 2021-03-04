@@ -36,7 +36,7 @@ def plot_total_change(data, path):
 
     # set limits
     ax.set(xlim=(-0.4, 0.4))
-    ax.set(ylim=(0, 4))
+    ax.set(ylim=(0, 4.5))
 
     # format labels
     xlabels = [i / 10 for i in range(-4, 5)]

@@ -25,7 +25,7 @@ def plot_historical_timeseries(euro_usd_pd, path):
 
     # set up multiple graphs
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(15, 5), sharex=True)
-    fig.suptitle("EURO/USD exchange rate")
+    # fig.suptitle("EURO/USD exchange rate")
 
     # plot EURO/USD price
     ax1.tick_params(labelbottom="off", labelleft="off")

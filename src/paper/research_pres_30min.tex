@@ -8,7 +8,7 @@
 \usepackage{fancyvrb, moreverb, relsize}
 \usepackage{eurosym, calc}
 \usepackage{amsmath, amssymb, amsfonts, amsthm, bm}
-
+\usepackage{hyperref}
 \usepackage[
     natbib=true,
     bibencoding=inputenc,
@@ -53,13 +53,196 @@
 \begin{frame}[t]
     \frametitle{Background}
     \begin{itemize}
-        \item<+-> 
-        \item 
-        \item This work has be done using the template of \citet{GaudeckerEconProjectTemplates}
+        \item This is the final project of the course \textit{Effective Programming}
+        \item Work has be done using the template of \citet{GaudeckerEconProjectTemplates}
     \end{itemize}
     \note{~}
 \end{frame}
 
+
+
+\begin{frame}[t]
+    \frametitle{EURO/USD exchange rate}
+    \begin{itemize}
+        \item EUR/USD exchange rate fluctuated between 0.8 and 1.6
+        \item daily returns are very low with phases of volatility (e.g. in 2008)
+    \end{itemize}
+    \begin{figure}
+        \caption{EUR/USD exchange rate volatility}
+        \includegraphics[width=\textwidth]{../../bld/figures/euro_usd_timeseries}
+    \end{figure}
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{But how large is the change over 1 year?}
+    \begin{itemize}
+        \item We take a completely non-parameteric approach
+        \item 1) We look of the sample of 1 year periods from 1990-Today (Historical)
+        \item 2) We (bootstrapp)[] 1 year samples from historical data (Bootstrapping)
+        \item We use the \bf{stationary bootstrap}
+    \end{itemize}
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Stationary Bootstrap}
+    \begin{itemize}
+        \item keeps the autocorrelated structure of our data intact
+        \item autocorrelation in variance plays a prominent role in financial data (GARCH modelling)
+        \item the recombinator package does the job for us
+        \item optimal (average) interval length is calculated internally
+    \end{itemize}
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Simulated 1-year EURO/USD exchange rate returns (Bootstrapping)}
+    \begin{figure}
+        \caption{Sample created with Bootstrapping}
+        \includegraphics[width=80mm]{../../bld/figures/euro_usd_bootstrapped}
+    \end{figure}
+    \note{aggregated returns from 262 trading days}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Simulated 1-year EURO/USD exchange rate returns (Historical)}
+    \begin{figure}
+        \caption{Sample created with historical exchange rate}
+        \includegraphics[width=80mm]{../../bld/figures/euro_usd_historical}
+    \end{figure}
+    \note{aggregated returns from 262 trading days}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{What is DEFI?}
+    \begin{itemize}
+        \item offers financial services without relying on (trusted) financial intermediaries
+        \item uses smart-contracts running on a blockchain (majority runs on \href{https://ethereum.org/en/}{\bf{Ethereum}})
+        \item completely transparent and efficient, but risky (contracts can be hacked)
+        \item \href{https://en.wikipedia.org/wiki/Decentralized_finance}{Wikipedia article}, \href{https://research.stlouisfed.org/publications/review/2021/02/05/decentralized-finance-on-blockchain-and-smart-contract-based-financial-markets}{Economic paper}
+        \item Feel free to reach out if you wanna know more ;)
+    \end{itemize}
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{The Problem}
+    \begin{itemize}
+        \item Algorithmic savings protocols such as \href{https://app.aave.com/}{\bf{Aave}} offer good returns
+        \item require users to hold stable coins (denominated in USD)
+        \item this results in exchange rate risks for users from outside of the US
+        \item worked on fixing this problem on some \href{https://ethglobal.online/}{Ethereum Hackathons}
+        \item Now I want to do some simulations of how the current economic design would perform
+        \item and create a framework to quickly iterate on the version
+    \end{itemize}
+    \note{~}
+\end{frame}
+
+
+\begin{frame}[t]
+    \frametitle{Introduce a swap contract}
+    \begin{itemize}
+        \item Alice goes long Euro by putting 1 Dollar into a smart contract and receiving a token called EURlong
+        \item Bob goes short Euro by putting 1 Dollar into a smart contract and receiving a token called EURshort
+        \item After 1 year the contract allocates the collateral according to below formula
+    \end{itemize}
+    \input{formulas/swap_contract}
+
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Example calculations}
+    \begin{itemize}
+        \item for $e_0 = 1, e_1 = 1.05, leverage = 2, collateral = 2$
+        \item Alice receives 1.5 USD back
+        \item Bob receives 0.5 USD back
+        \item Why might Alice and Bob take that deal?
+        \item Alice can transform USD assets into EUR assets with EURlong
+        \item Bob can transform USD debt into EUR debt with EURshort
+    \end{itemize}
+
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Simulation analysis}
+    \begin{itemize}
+        \item We know simulate the payoff of the EURlong and EURshort certificate with simulated 1 year returns from before
+        \item In the following I will just show bootstrapped results. Both graphs are produced and are very similar.
+        \item We will show density plots of payouts in all generated scenarios
+    \end{itemize}
+
+    \note{~}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Number of runs with negative payout}
+    \begin{itemize}
+        \item depending on the exchange rate movement, leverage and asset allocation we might end up with negative income
+        \item this is problematic since we can \it{typically} not enforce demands on a blockchain
+        \item We hereby try to minimize the probability of this happening
+    \end{itemize}
+
+    \note{~}
+\end{frame}
+
+
+\begin{frame}[t]
+    \frametitle{Swap contract payout depending on asset allocation and leverage}
+    \begin{figure}
+        \caption{Density of payouts}
+        \includegraphics[width=70mm]{../../bld/figures/bootstrapped_negative_payout}
+    \end{figure}
+
+\end{frame}
+
+
+\begin{frame}[t]
+    \frametitle{Payout profile of EURO short swap contract}
+    \begin{figure}
+        \caption{Sample created with Bootstrapping}
+        \includegraphics[width=80mm]{../../bld/figures/bootstrapped_eurshort_payout}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}[t]
+    \frametitle{Payout profile of EURO long swap contract}
+    \begin{figure}
+        \caption{Sample created with Bootstrapping}
+        \includegraphics[width=80mm]{../../bld/figures/bootstrapped_eurlong_payout}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Expected EUR return on collateral locked}
+    \begin{figure}
+        \caption{Sample created with Bootstrapping}
+        \includegraphics[width=80mm]{../../bld/figures/bootstrapped_expected_payout_EUR}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Expected USD return on collateral locked}
+    \begin{figure}
+        \caption{Sample created with Bootstrapping}
+        \includegraphics[width=80mm]{../../bld/figures/bootstrapped_expected_payout_USD}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[t]
+    \frametitle{Conclusion}
+    \begin{itemize}
+        \item leverage factor above 5 must be considered to be unsafe
+        \item higher proportion of assets invested in USD increase payout of EURshort
+        \item higher proportion of assets invested in USD increases chance of negative payout
+    \end{itemize}
+
+    \note{~}
+\end{frame}
 
 % Print black screen only in presentation mode for finishing up.
 \mode<beamer> {
