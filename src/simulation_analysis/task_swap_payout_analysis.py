@@ -25,14 +25,6 @@ from src.config import BLD
 
 
 def plot_negative_payout(runs_with_negative_payout, figure_path, simulation_name):
-    """[summary]
-
-    Args:
-        runs_with_negative_payout (pd.Series): [description]
-        simulation_name (str): [description]
-        graph_path (string): [description]
-    """
-
     sns.set_theme()
     # Initialize graph
     fig, ax = plt.subplots()
@@ -60,12 +52,6 @@ def plot_negative_payout(runs_with_negative_payout, figure_path, simulation_name
 
 
 def plot_expected_payout_EUR(runs_total_payout, figure_path, simulation_name):
-    """[summary]
-
-    Args:
-        runs_with_negative_payout (pd.Series): [description]
-        graph_path (string): [description]
-    """
 
     sns.set_theme()
     # Initialize graph
@@ -92,12 +78,6 @@ def plot_expected_payout_EUR(runs_total_payout, figure_path, simulation_name):
 
 
 def plot_expected_payout_USD(runs_total_payout, figure_path, simulation_name):
-    """[summary]
-
-    Args:
-        runs_with_negative_payout (pd.Series): [description]
-        graph_path (string): [description]
-    """
 
     sns.set_theme()
     # Initialize graph
@@ -124,12 +104,6 @@ def plot_expected_payout_USD(runs_total_payout, figure_path, simulation_name):
 
 
 def plot_eurlong_payout(runs_eurlong_payout, figure_path, simulation_name):
-    """[summary]
-
-    Args:
-        runs_with_negative_payout (pd.Series): [description]
-        graph_path (string): [description]
-    """
 
     sns.set_theme()
     # Initialize graph
@@ -153,12 +127,6 @@ def plot_eurlong_payout(runs_eurlong_payout, figure_path, simulation_name):
 
 
 def plot_eurshort_payout(runs_eurshort_payout, figure_path, simulation_name):
-    """[summary]
-
-    Args:
-        runs_with_negative_payout (pd.Series): [description]
-        graph_path (string): [description]
-    """
 
     sns.set_theme()
     # Initialize graph
