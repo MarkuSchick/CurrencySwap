@@ -23,8 +23,9 @@ PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 
 from src.config import BLD
 from src.simulation_analysis.utility import (
-    _merge_many_to_one_metadata,
-    _merge_one_to_one_metadata,
+    merge_many_to_one_metadata,
+    merge_one_to_one_metadata,
+    extract_simulation_name
 )
 
 
@@ -42,7 +43,7 @@ def _aggregate_runs_with_negative_payout(data):
 
 def _get_runs_with_negative_payout(data, metadata):
     _runs_with_negative_payout = _aggregate_runs_with_negative_payout(data)
-    _runs_with_negative_payout_merged = _merge_one_to_one_metadata(
+    _runs_with_negative_payout_merged = merge_one_to_one_metadata(
         _runs_with_negative_payout, metadata
     )
     assert not _runs_with_negative_payout_merged.empty, "Dataframe is empty"
@@ -86,7 +87,7 @@ def plot_negative_payout(payout_data, payout_metadata, figure_path, simulation_n
         vmax=0.10,
         cmap="Reds",
     )
-    fig.savefig(figure_path / f"{simulation_name}_negative_payout.png")
+    fig.savefig(figure_path)
 
 
 def _calculate_total_payout_EUR(data):
@@ -107,7 +108,7 @@ def _keep_columns_total_payout(payout_data):
 
 def _get_run_total_payout_EUR(data, metadata):
     total_payout_data = _calculate_total_payout_EUR(data)
-    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
+    total_payout_data = merge_many_to_one_metadata(total_payout_data, metadata)
     total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
     assert not total_payout_aggregated.empty, "Dataframe is empty"
     return total_payout_aggregated
@@ -148,7 +149,7 @@ def plot_expected_payout_EUR(
         y="Total payout",
         fill=True,
     )
-    fig.savefig(figure_path / f"{simulation_name}_expected_payout_EUR.png")
+    fig.savefig(figure_path)
 
 
 def _calculate_total_payout_USD(data):
@@ -162,7 +163,7 @@ def _calculate_total_payout_USD(data):
 
 def _get_run_total_payout_USD(data, metadata):
     total_payout_data = _calculate_total_payout_USD(data)
-    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
+    total_payout_data = merge_many_to_one_metadata(total_payout_data, metadata)
     total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
     assert not total_payout_aggregated.empty, "Dataframe is empty"
     return total_payout_aggregated
@@ -202,7 +203,7 @@ def plot_expected_payout_USD(
         y="Total payout",
         fill=True,
     )
-    fig.savefig(figure_path / f"{simulation_name}_expected_payout_USD.png")
+    fig.savefig(figure_path)
 
 
 def _aggregate_run_eurlong_payout(data):
@@ -214,7 +215,7 @@ def _aggregate_run_eurlong_payout(data):
 
 def _get_run_eurlong_payout(data, metadata):
     run_eurlong_payout = _aggregate_run_eurlong_payout(data)
-    run_eurlong_payout_merged = _merge_many_to_one_metadata(
+    run_eurlong_payout_merged = merge_many_to_one_metadata(
         run_eurlong_payout, metadata
     )
     run_eurlong_payout_merged = run_eurlong_payout_merged[
@@ -254,7 +255,7 @@ def plot_eurlong_payout(payout_data, payout_metadata, figure_path, simulation_na
         fill=True,
     )
 
-    fig.savefig(figure_path / f"{simulation_name}_eurlong_payout.png")
+    fig.savefig(figure_path)
 
 
 def _aggregate_run_eurshort_payout(data):
@@ -266,7 +267,7 @@ def _aggregate_run_eurshort_payout(data):
 
 def _get_run_eurshort_payout(data, metadata):
     run_eurshort_payout = _aggregate_run_eurshort_payout(data)
-    run_eurshort_payout_merged = _merge_many_to_one_metadata(
+    run_eurshort_payout_merged = merge_many_to_one_metadata(
         run_eurshort_payout, metadata
     )
     run_eurshort_payout_merged = run_eurshort_payout_merged[
@@ -306,50 +307,73 @@ def plot_eurshort_payout(payout_data, payout_metadata, figure_path, simulation_n
         fill=True,
     )
 
-    fig.savefig(figure_path / f"{simulation_name}_eurshort_payout.png")
+    fig.savefig(figure_path)
 
-
+# varying specifications
 specifications = (
     (
-        BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle",
-        BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle",
-        BLD / "figures",
-        simulation_name,
+        {
+            "payout_data": BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle",
+            "meta_data": BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle",
+        },
+        {
+            "negative_payout":  BLD / "figures" / f"{simulation_name}_negative_payout.png",
+            "total_payout_EUR":  BLD / "figures" / f"{simulation_name}_total_payout_EUR.png",
+            "total_payout_USD":  BLD / "figures" / f"{simulation_name}_total_payout_USD.png",
+            "eurlong_payout":  BLD / "figures" / f"{simulation_name}_eurlong_payout.png",
+            "eurshort_payout":  BLD / "figures" / f"{simulation_name}_eurshort_payout.png",
+        }
+    
     )
     for simulation_name in ["historical", "bootstrapped"]
 )
 
-
 @pytask.mark.parametrize(
-    "data_path, metadata_path, figure_path, simulation_name",
+    "depends_on, produces",
     specifications,
 )
-def task_swap_payout_analysis(data_path, metadata_path, figure_path, simulation_name):
+
+def task_swap_payout_analysis(depends_on, produces):
 
     # load files
-    payout_data = pd.read_pickle(data_path)
-    payout_metadata = pd.read_pickle(metadata_path)
+    payout_data = pd.read_pickle(depends_on["payout_data"])
+    payout_metadata = pd.read_pickle(depends_on["meta_data"]) 
+    simulation_name = extract_simulation_name(depends_on["payout_data"])
 
     # plot negative payout
-    plot_negative_payout(payout_data, payout_metadata, figure_path, simulation_name)
+    plot_negative_payout(payout_data, payout_metadata, produces['negative_payout'], simulation_name)
 
     # plot total payout (EUR)
-    plot_expected_payout_EUR(payout_data, payout_metadata, figure_path, simulation_name)
+    plot_expected_payout_EUR(payout_data, payout_metadata, produces['total_payout_EUR'], simulation_name)
 
     # plot total payout (USD)
-    plot_expected_payout_USD(payout_data, payout_metadata, figure_path, simulation_name)
+    plot_expected_payout_USD(payout_data, payout_metadata, produces['total_payout_USD'], simulation_name)
 
     # plot EURlong payout
-    plot_eurlong_payout(payout_data, payout_metadata, figure_path, simulation_name)
+    plot_eurlong_payout(payout_data, payout_metadata, produces['eurlong_payout'], simulation_name)
 
     # plot EURshort payout
-    plot_eurshort_payout(payout_data, payout_metadata, figure_path, simulation_name)
+    plot_eurshort_payout(payout_data, payout_metadata, produces['eurshort_payout'], simulation_name)
 
 
 if __name__ == "__main__":
     simulation_name = "bootstrapped"
-    data_path = BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle"
-    metadata_path = BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle"
-    figure_path = BLD / "figures"
 
-    task_swap_payout_analysis(data_path, metadata_path, figure_path, simulation_name)
+    depends_on =          {
+            "payout_data": BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle",
+            "meta_data": BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle",
+        }
+    
+    
+    produces =       {
+            "negative_payout":  BLD / "figures" / f"{simulation_name}_negative_payout.png",
+            "total_payout_EUR":  BLD / "figures" / f"{simulation_name}_total_payout_EUR.png",
+            "total_payout_USD":  BLD / "figures" / f"{simulation_name}_total_payout_USD.png",
+            "eurlong_payout":  BLD / "figures" / f"{simulation_name}_eurlong_payout.png",
+            "eurshort_payout":  BLD / "figures" / f"{simulation_name}_eurshort_payout.png",
+        }
+
+    task_swap_payout_analysis(depends_on, produces)
+
+
+
