@@ -22,9 +22,47 @@ import seaborn as sns
 PLOT_ARGS = {"markersize": 4, "alpha": 0.6}
 
 from src.config import BLD
+from src.simulation_analysis.utility import (
+    _merge_many_to_one_metadata,
+    _merge_one_to_one_metadata,
+)
 
 
-def plot_negative_payout(runs_with_negative_payout, figure_path, simulation_name):
+def _aggregate_runs_with_negative_payout(data):
+    negative_payout_data = (
+        (data[["EURlong payout in EURO", "EURshort payout in EURO"]] < 0)
+        .any(axis="columns")
+        .to_frame(name="negative_payout")
+    )
+    negative_payout_data_aggregated = negative_payout_data.groupby(
+        "swap_config_id"
+    ).mean()
+    return negative_payout_data_aggregated
+
+
+def _get_runs_with_negative_payout(data, metadata):
+    _runs_with_negative_payout = _aggregate_runs_with_negative_payout(data)
+    _runs_with_negative_payout_merged = _merge_one_to_one_metadata(
+        _runs_with_negative_payout, metadata
+    )
+    assert not _runs_with_negative_payout_merged.empty, "Dataframe is empty"
+    return _runs_with_negative_payout_merged
+
+
+def plot_negative_payout(payout_data, payout_metadata, figure_path, simulation_name):
+    """Plot share of runs with negative payout
+
+    Args:
+        payout_data (pd.DataFrame): dataset with payout data
+        payout_metadata  (pd.DataFrame): dataset with metainformation about run
+        (leverage, asset allocation)
+        figure_path (str): output path
+        simulation_name (str): Type of simulation (bootstrapp or historical)
+    """
+    runs_with_negative_payout = _get_runs_with_negative_payout(
+        payout_data, payout_metadata
+    )
+
     sns.set_theme()
     # Initialize graph
     fig, ax = plt.subplots()
@@ -51,7 +89,43 @@ def plot_negative_payout(runs_with_negative_payout, figure_path, simulation_name
     fig.savefig(figure_path / f"{simulation_name}_negative_payout.png")
 
 
-def plot_expected_payout_EUR(runs_total_payout, figure_path, simulation_name):
+def _calculate_total_payout_EUR(data):
+    total_payout = (
+        data["EURlong payout in EURO"]
+        .add(data["EURshort payout in EURO"])
+        .to_frame(name="total_payout")
+    )
+    return total_payout
+
+
+def _keep_columns_total_payout(payout_data):
+    keep_payout_data = payout_data.query("leverage==2")[
+        ["total_payout", "USD_asset_allocation"]
+    ].reset_index(drop=True)
+    return keep_payout_data
+
+
+def _get_run_total_payout_EUR(data, metadata):
+    total_payout_data = _calculate_total_payout_EUR(data)
+    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
+    total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
+    assert not total_payout_aggregated.empty, "Dataframe is empty"
+    return total_payout_aggregated
+
+
+def plot_expected_payout_EUR(
+    payout_data, payout_metadata, figure_path, simulation_name
+):
+    """Plot total (EURlong + EURshort) expected payout in EURO
+
+    Args:
+        payout_data (pd.DataFrame): dataset with payout data
+        payout_metadata  (pd.DataFrame): dataset with metainformation about run
+        (leverage, asset allocation)
+        figure_path (str): output path
+        simulation_name (str): Type of simulation (bootstrapp or historical)
+    """
+    runs_total_payout = _get_run_total_payout_EUR(payout_data, payout_metadata)
 
     sns.set_theme()
     # Initialize graph
@@ -77,8 +151,36 @@ def plot_expected_payout_EUR(runs_total_payout, figure_path, simulation_name):
     fig.savefig(figure_path / f"{simulation_name}_expected_payout_EUR.png")
 
 
-def plot_expected_payout_USD(runs_total_payout, figure_path, simulation_name):
+def _calculate_total_payout_USD(data):
+    total_payout = (
+        data["EURlong payout in USD"]
+        .add(data["EURshort payout in USD"])
+        .to_frame(name="total_payout")
+    )
+    return total_payout
 
+
+def _get_run_total_payout_USD(data, metadata):
+    total_payout_data = _calculate_total_payout_USD(data)
+    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
+    total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
+    assert not total_payout_aggregated.empty, "Dataframe is empty"
+    return total_payout_aggregated
+
+
+def plot_expected_payout_USD(
+    payout_data, payout_metadata, figure_path, simulation_name
+):
+    """Plot total (EURlong + EURshort) expected payout in USD
+
+    Args:
+        payout_data (pd.DataFrame): dataset with payout data
+        payout_metadata  (pd.DataFrame): dataset with metainformation about run
+        (leverage, asset allocation)
+        figure_path (str): output path
+        simulation_name (str): Type of simulation (bootstrapp or historical)
+    """
+    runs_total_payout = _get_run_total_payout_USD(payout_data, payout_metadata)
     sns.set_theme()
     # Initialize graph
     fig, ax = plt.subplots()
@@ -103,7 +205,36 @@ def plot_expected_payout_USD(runs_total_payout, figure_path, simulation_name):
     fig.savefig(figure_path / f"{simulation_name}_expected_payout_USD.png")
 
 
-def plot_eurlong_payout(runs_eurlong_payout, figure_path, simulation_name):
+def _aggregate_run_eurlong_payout(data):
+    aggregated_eurlong_payout_data = (
+        data[["EURlong payout in EURO"]].groupby("swap_config_id").mean()
+    )
+    return aggregated_eurlong_payout_data
+
+
+def _get_run_eurlong_payout(data, metadata):
+    run_eurlong_payout = _aggregate_run_eurlong_payout(data)
+    run_eurlong_payout_merged = _merge_many_to_one_metadata(
+        run_eurlong_payout, metadata
+    )
+    run_eurlong_payout_merged = run_eurlong_payout_merged[
+        ["EURlong payout in EURO", "USD_asset_allocation"]
+    ]
+    assert not run_eurlong_payout_merged.empty, "Dataframe is empty"
+    return run_eurlong_payout_merged
+
+
+def plot_eurlong_payout(payout_data, payout_metadata, figure_path, simulation_name):
+    """Plot the expected payout of the EURlong certificate
+
+    Args:
+        payout_data (pd.DataFrame): dataset with payout data
+        payout_metadata  (pd.DataFrame): dataset with metainformation about run
+        (leverage, asset allocation)
+        figure_path (str): output path
+        simulation_name (str): Type of simulation (bootstrapp or historical)
+    """
+    runs_eurlong_payout = _get_run_eurlong_payout(payout_data, payout_metadata)
 
     sns.set_theme()
     # Initialize graph
@@ -126,7 +257,36 @@ def plot_eurlong_payout(runs_eurlong_payout, figure_path, simulation_name):
     fig.savefig(figure_path / f"{simulation_name}_eurlong_payout.png")
 
 
-def plot_eurshort_payout(runs_eurshort_payout, figure_path, simulation_name):
+def _aggregate_run_eurshort_payout(data):
+    aggregated_eurshort_payout_data = (
+        data[["EURshort payout in EURO"]].groupby("swap_config_id").mean()
+    )
+    return aggregated_eurshort_payout_data
+
+
+def _get_run_eurshort_payout(data, metadata):
+    run_eurshort_payout = _aggregate_run_eurshort_payout(data)
+    run_eurshort_payout_merged = _merge_many_to_one_metadata(
+        run_eurshort_payout, metadata
+    )
+    run_eurshort_payout_merged = run_eurshort_payout_merged[
+        ["EURshort payout in EURO", "USD_asset_allocation"]
+    ]
+    assert not run_eurshort_payout_merged.empty, "Dataframe is empty"
+    return run_eurshort_payout_merged
+
+
+def plot_eurshort_payout(payout_data, payout_metadata, figure_path, simulation_name):
+    """Plot the expected payout of the EURshort certificate
+
+    Args:
+        payout_data (pd.DataFrame): dataset with payout data
+        payout_metadata  (pd.DataFrame): dataset with metainformation about run
+        (leverage, asset allocation)
+        figure_path (str): output path
+        simulation_name (str): Type of simulation (bootstrapp or historical)
+    """
+    runs_eurshort_payout = _get_run_eurshort_payout(payout_data, payout_metadata)
 
     sns.set_theme()
     # Initialize graph
@@ -147,163 +307,6 @@ def plot_eurshort_payout(runs_eurshort_payout, figure_path, simulation_name):
     )
 
     fig.savefig(figure_path / f"{simulation_name}_eurshort_payout.png")
-
-
-def _merge_many_to_one_metadata(not_aggregated_data, metadata):
-    merged_dataset = not_aggregated_data.merge(
-        metadata,
-        left_index=True,
-        right_index=True,
-        validate="many_to_one",
-        indicator=True,
-    )
-    assert not (
-        merged_dataset["_merge"] != "both"
-    ).any(), "Rows can not be merged/ Metadata fraudulent"
-    merged_dataset.drop(columns=["_merge"], inplace=True)
-    return merged_dataset
-
-
-def _calculate_total_payout_EUR(data):
-    total_payout = (
-        data["EURlong payout in EURO"]
-        .add(data["EURshort payout in EURO"])
-        .to_frame(name="total_payout")
-    )
-    return total_payout
-
-
-def _keep_columns_total_payout(payout_data):
-    keep_payout_data = payout_data.query("leverage==2")[
-        ["total_payout", "USD_asset_allocation"]
-    ].reset_index(drop=True)
-    return keep_payout_data
-
-
-def get_run_total_payout_EUR(data, metadata):
-    """[summary]
-
-    Args:
-        data ([type]): [description]
-        metadata ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    total_payout_data = _calculate_total_payout_EUR(data)
-    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
-    total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
-    assert not total_payout_aggregated.empty, "Dataframe is empty"
-    return total_payout_aggregated
-
-
-def _calculate_total_payout_USD(data):
-    total_payout = (
-        data["EURlong payout in USD"]
-        .add(data["EURshort payout in USD"])
-        .to_frame(name="total_payout")
-    )
-    return total_payout
-
-
-def get_run_total_payout_USD(data, metadata):
-    """[summary]
-
-    Args:
-        data ([type]): [description]
-        metadata ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    total_payout_data = _calculate_total_payout_USD(data)
-    total_payout_data = _merge_many_to_one_metadata(total_payout_data, metadata)
-    total_payout_aggregated = _keep_columns_total_payout(total_payout_data)
-    assert not total_payout_aggregated.empty, "Dataframe is empty"
-    return total_payout_aggregated
-
-
-def _merge_one_to_one_metadata(aggregated_data, metadata):
-    merged_dataset = aggregated_data.merge(
-        metadata,
-        left_index=True,
-        right_index=True,
-        validate="one_to_one",
-        indicator=True,
-    )
-    assert not (
-        merged_dataset["_merge"] != "both"
-    ).any(), "Rows can not be merged/ Metadata fraudulent"
-    merged_dataset.drop(columns=["_merge"], inplace=True)
-    return merged_dataset
-
-
-def _aggregate_runs_with_negative_payout(data):
-    negative_payout_data = (
-        (data[["EURlong payout in EURO", "EURshort payout in EURO"]] < 0)
-        .any(axis="columns")
-        .to_frame(name="negative_payout")
-    )
-    negative_payout_data_aggregated = negative_payout_data.groupby(
-        "swap_config_id"
-    ).mean()
-    return negative_payout_data_aggregated
-
-
-def get_runs_with_negative_payout(data, metadata):
-    """[summary]
-
-    Args:
-        data (pd.DataFrame): dataframe with simulation data
-        metadata (pd.DataFrame): dataframe with run configurations
-
-    Returns:
-        [type]: [description]
-    """
-    _runs_with_negative_payout = _aggregate_runs_with_negative_payout(data)
-    _runs_with_negative_payout_merged = _merge_one_to_one_metadata(
-        _runs_with_negative_payout, metadata
-    )
-    assert not _runs_with_negative_payout_merged.empty, "Dataframe is empty"
-    return _runs_with_negative_payout_merged
-
-
-def _aggregate_run_eurlong_payout(data):
-    aggregated_eurlong_payout_data = (
-        data[["EURlong payout in EURO"]].groupby("swap_config_id").mean()
-    )
-    return aggregated_eurlong_payout_data
-
-
-def get_run_eurlong_payout(data, metadata):
-    run_eurlong_payout = _aggregate_run_eurlong_payout(data)
-    run_eurlong_payout_merged = _merge_many_to_one_metadata(
-        run_eurlong_payout, metadata
-    )
-    run_eurlong_payout_merged = run_eurlong_payout_merged[
-        ["EURlong payout in EURO", "USD_asset_allocation"]
-    ]
-    assert not run_eurlong_payout_merged.empty, "Dataframe is empty"
-    return run_eurlong_payout_merged
-
-
-def _aggregate_run_eurshort_payout(data):
-    aggregated_eurshort_payout_data = (
-        data[["EURshort payout in EURO"]].groupby("swap_config_id").mean()
-    )
-    return aggregated_eurshort_payout_data
-
-
-def get_run_eurshort_payout(data, metadata):
-    run_eurshort_payout = _aggregate_run_eurshort_payout(data)
-    run_eurshort_payout_merged = _merge_many_to_one_metadata(
-        run_eurshort_payout, metadata
-    )
-    run_eurshort_payout_merged = run_eurshort_payout_merged[
-        ["EURshort payout in EURO", "USD_asset_allocation"]
-    ]
-    assert not run_eurshort_payout_merged.empty, "Dataframe is empty"
-    return run_eurshort_payout_merged
 
 
 specifications = (
@@ -328,26 +331,19 @@ def task_swap_payout_analysis(data_path, metadata_path, figure_path, simulation_
     payout_metadata = pd.read_pickle(metadata_path)
 
     # plot negative payout
-    runs_with_negative_payout = get_runs_with_negative_payout(
-        payout_data, payout_metadata
-    )
-    plot_negative_payout(runs_with_negative_payout, figure_path, simulation_name)
+    plot_negative_payout(payout_data, payout_metadata, figure_path, simulation_name)
 
     # plot total payout (EUR)
-    runs_total_payout_EUR = get_run_total_payout_EUR(payout_data, payout_metadata)
-    plot_expected_payout_EUR(runs_total_payout_EUR, figure_path, simulation_name)
+    plot_expected_payout_EUR(payout_data, payout_metadata, figure_path, simulation_name)
 
     # plot total payout (USD)
-    runs_total_payout_USD = get_run_total_payout_USD(payout_data, payout_metadata)
-    plot_expected_payout_USD(runs_total_payout_USD, figure_path, simulation_name)
+    plot_expected_payout_USD(payout_data, payout_metadata, figure_path, simulation_name)
 
-    # plot EURO long payout
-    runs_eurlong_payout = get_run_eurlong_payout(payout_data, payout_metadata)
-    plot_eurlong_payout(runs_eurlong_payout, figure_path, simulation_name)
+    # plot EURlong payout
+    plot_eurlong_payout(payout_data, payout_metadata, figure_path, simulation_name)
 
-    # plot EURO short payout
-    runs_eurshort_payout = get_run_eurshort_payout(payout_data, payout_metadata)
-    plot_eurshort_payout(runs_eurshort_payout, figure_path, simulation_name)
+    # plot EURshort payout
+    plot_eurshort_payout(payout_data, payout_metadata, figure_path, simulation_name)
 
 
 if __name__ == "__main__":
