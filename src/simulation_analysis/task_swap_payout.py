@@ -85,9 +85,9 @@ def filename_to_metadata(run_id, simulation_name, leverage, USD_asset_allocation
 # varying specifications
 specifications = (
     (
-        f"simulated_data_{simulation_name}.pickle",
-        f"simulated_payout_{simulation_name}.pickle",
-        f"metadata_payout_{simulation_name}.pickle",
+        BLD / "simulated_data" / f"simulated_data_{simulation_name}.pickle",
+        BLD / "simulated_payout" / f"simulated_payout_{simulation_name}.pickle",
+        BLD / "metadata" / f"metadata_payout_{simulation_name}.pickle",
         simulation_name,
     )
     for simulation_name in ["historical", "bootstrapped"]
@@ -103,9 +103,6 @@ specifications = (
     {
         "scenario_config": SRC / "contract_specs" / "scenario_config.json",
         "swap_config": SRC / "contract_specs" / "swap_config.json",
-        "inFile_folder": BLD / "simulated_data",
-        "outFile_folder": BLD / "simulated_payout",
-        "metadata_folder": BLD / "metadata",
     }
 )
 def task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name):
@@ -125,7 +122,7 @@ def task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name)
         for USD_asset_allocation in swap_config["USD_asset_allocation"]:
 
             # load files
-            raw_data = pd.read_pickle(depends_on["inFile_folder"] / inFile)
+            raw_data = pd.read_pickle(inFile)
 
             # simulate payout given parameterization
             cumulative_change = get_total_exchange_rate_change(raw_data)
@@ -148,8 +145,8 @@ def task_swap_payout(depends_on, inFile, outFile, metadataFile, simulation_name)
     meta_data = pd.concat(meta_data_list).set_index("swap_config_id")
 
     # save files
-    payout_data.to_pickle(depends_on["outFile_folder"] / outFile)
-    meta_data.to_pickle(depends_on["metadata_folder"] / metadataFile)
+    payout_data.to_pickle(outFile)
+    meta_data.to_pickle(metadataFile)
 
 
 if __name__ == "__main__":
