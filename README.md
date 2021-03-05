@@ -2,11 +2,17 @@
 Finished the step "Preparing your system" from https://econ-project-templates.readthedocs.io/en/stable/getting_started.html#preparing-your-system.
 
 # Install the environment:
-Type
-
+Create the environment by writing
 `conda env create -f environment.yml`
 
-to create the environment from the file.
+
+Active the environment by typing
+`conda activate currency_swap`
+
+# Clone the project
+Clone the project and go to folder
+`git clone https://github.com/SchickMarkus/currency_swap.git`
+`cd currency_swap`
 
 # Run the project:
 
@@ -18,6 +24,7 @@ Type
 
 
 to run the project.
+You might have to run the last command a couple of times to build all dependencies!
 
 # Documentation
 
