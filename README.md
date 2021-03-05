@@ -1,5 +1,5 @@
 # Requirements
-Finished the step "Preparing your system" from https://econ-project-templates.readthedocs.io/en/stable/getting_started.html#configuring-your-new-project.
+Finished the step "Preparing your system" from https://econ-project-templates.readthedocs.io/en/stable/getting_started.html#preparing-your-system.
 
 # Install the environment:
 Type

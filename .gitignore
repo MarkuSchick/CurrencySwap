@@ -71,3 +71,7 @@ ___*
 !.pre-commit-config.yaml
 env
 workspace.*
+!bld/metadata
+!bld/simulated_data
+!bld/simulated_payout
+*.pickle
