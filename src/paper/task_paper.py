@@ -7,7 +7,7 @@ from src.config import ROOT
 from src.config import SRC
 
 
-documents = ["research_pres_30min"]
+document = "research_pres_30min"
 
 
 @pytask.mark.latex(
@@ -20,23 +20,30 @@ documents = ["research_pres_30min"]
         "--shell-escape",
     ]
 )
-@pytask.mark.parametrize(
-    "depends_on, produces",
+@pytask.mark.depends_on(
     [
-        (SRC / "paper" / f"{document}.tex", BLD / "paper" / f"{document}.pdf")
-        for document in documents
-    ],
+        SRC / "paper" / f"{document}.tex",
+        BLD / "figures" / "bootstrapped_eurlong_payout.png",
+        BLD / "figures" / "bootstrapped_eurshort_payout.png",
+        BLD / "figures" / "bootstrapped_negative_payout.png",
+        BLD / "figures" / "bootstrapped_total_payout_EUR.png",
+        BLD / "figures" / "bootstrapped_total_payout_USD.png",
+        BLD / "figures" / "euro_usd_bootstrapped.png",
+        BLD / "figures" / "euro_usd_historical.png",
+        BLD / "figures" / "euro_usd_timeseries.png",
+        BLD / "figures" / "historical_eurlong_payout.png",
+        BLD / "figures" / "historical_eurshort_payout.png",
+        BLD / "figures" / "historical_negative_payout.png",
+        BLD / "figures" / "historical_total_payout_EUR.png",
+        BLD / "figures" / "historical_total_payout_USD.png",
+    ]
 )
+@pytask.mark.produces(BLD / "paper" / f"{document}.pdf")
 def task_compile_documents():
     pass
 
 
-@pytask.mark.parametrize(
-    "depends_on, produces",
-    [
-        (BLD / "paper" / f"{document}.pdf", ROOT / f"{document}.pdf")
-        for document in documents
-    ],
-)
+@pytask.mark.depends_on(BLD / "paper" / f"{document}.pdf")
+@pytask.mark.produces(ROOT / f"{document}.pdf")
 def task_copy_to_root(depends_on, produces):
     shutil.copy(depends_on, produces)
