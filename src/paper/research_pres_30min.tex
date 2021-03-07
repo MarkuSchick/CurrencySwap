@@ -79,7 +79,7 @@
     \begin{itemize}
         \item We take a completely non-parameteric approach
         \item 1) We look of the sample of 1 year periods from 1990-Today (Historical)
-        \item 2) We (bootstrapp)[] 1 year samples from historical data (Bootstrapping)
+        \item 2) We bootstrapp 1 year samples from historical data (Bootstrapping)
         \item We use the \bf{stationary bootstrap}
     \end{itemize}
     \note{~}
@@ -132,7 +132,8 @@
         \item Algorithmic savings protocols such as \href{https://app.aave.com/}{\bf{Aave}} offer good returns
         \item require users to hold stable coins (denominated in USD)
         \item this results in exchange rate risks for users from outside of the US
-        \item worked on fixing this problem on some \href{https://ethglobal.online/}{Ethereum Hackathons}
+        \item worked on fixing this problem on some \href{https://ethglobal.online/}{Ethereum Hackathons} (see
+        \href{https://github.com/SchickMarkus/Dollar_Hedge}{Hackathon1}, \href{https://github.com/PhilKlae/CortexHedge}{Hackathon2})
         \item Now I want to do some simulations of how the current economic design would perform
         \item and create a framework to quickly iterate on the version
     \end{itemize}
@@ -180,7 +181,7 @@
 \begin{frame}[t]
     \frametitle{Number of runs with negative payout}
     \begin{itemize}
-        \item depending on the exchange rate movement, leverage and asset allocation we might end up with negative income
+        \item depending on the exchange rate movement, leverage and asset allocation we might end up with negative payout (see \ref{payout_formula})
         \item this is problematic since we can \it{typically} not enforce demands on a blockchain
         \item We hereby try to minimize the probability of this happening
     \end{itemize}
@@ -218,7 +219,7 @@
 \end{frame}
 
 \begin{frame}[t]
-    \frametitle{Expected EUR return on collateral locked}
+    \frametitle{Expected EUR return on (total) collateral locked}
     \begin{figure}
         \caption{Sample created with Bootstrapping}
         \includegraphics[width=80mm]{../../bld/figures/bootstrapped_total_payout_EUR}
@@ -226,7 +227,7 @@
 \end{frame}
 
 \begin{frame}[t]
-    \frametitle{Expected USD return on collateral locked}
+    \frametitle{Expected USD return on (total) collateral locked}
     \begin{figure}
         \caption{Sample created with Bootstrapping}
         \includegraphics[width=80mm]{../../bld/figures/bootstrapped_total_payout_USD}
@@ -236,10 +237,11 @@
 \begin{frame}[t]
     \frametitle{Conclusion}
     \begin{itemize}
+        \item bootstrapped sample shows similar level of volatility to historical sample
         \item leverage factor above 5 must be considered to be unsafe
         \item higher proportion of assets invested in USD increase payout of EURshort
         \item higher proportion of assets invested in USD increases chance of negative payout
-        \item more 
+        \item more (theoretical) analysis / research is needed to find a meaningful economic design
     \end{itemize}
 
     \note{~}
