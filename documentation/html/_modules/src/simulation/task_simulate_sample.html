@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.simulation.task_simulate_sample &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.simulation.task_simulate_sample</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.simulation.task_simulate_sample</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Generates simulated EURO / USD returns for a period</span>
+<span class="sd">specified in simulate_config.json.</span>
+<span class="sd">Saves simulated samples as pickle.</span>
+
+<span class="sd">Implemented methods:|</span>
+<span class="sd"># historical (based on historical 1 year returns) |</span>
+<span class="sd"># bootstrapped (stationary bootstrapped returns from historical sample) |</span>
+
+<span class="sd">Bootstrapping is done with the recombinator package.</span>
+<span class="sd">See: https://github.com/InvestmentSystems/recombinator</span>
+
+
+<span class="sd">Further simulation function can be parsed as arguments to the iterator object</span>
+<span class="sd">specifications.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytask</span>
+<span class="kn">from</span> <span class="nn">recombinator.block_bootstrap</span> <span class="kn">import</span> <span class="n">stationary_bootstrap</span>
+<span class="kn">from</span> <span class="nn">recombinator.optimal_block_length</span> <span class="kn">import</span> <span class="n">optimal_block_length</span>
+
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">BLD</span>
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">SRC</span>
+
+
+<div class="viewcode-block" id="generate_historical_returns"><a class="viewcode-back" href="../../../simulation.html#src.simulation.task_simulate_sample.generate_historical_returns">[docs]</a><span class="k">def</span> <span class="nf">generate_historical_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stack vectors of (all) historical periods starting</span>
+<span class="sd">    from the introduction of the EURO in 1999 of length</span>
+<span class="sd">    of 1 year next to each other</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.</span>
+<span class="sd">        config (dict): dictionary of simulation parameters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame(trading_days, K): DataFrame of K historical series of</span>
+<span class="sd">        1 year returns of length trading days.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># settings</span>
+    <span class="n">trading_days</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;trading_days&quot;</span><span class="p">]</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">trading_days</span>
+
+    <span class="c1"># initiate empty container</span>
+    <span class="n">simulated_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">K</span><span class="p">,</span> <span class="n">trading_days</span><span class="p">))</span>
+
+    <span class="c1"># generate sample</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+        <span class="n">simulated_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">trading_days</span><span class="p">]</span>
+
+    <span class="c1"># export as pandas dataFrame</span>
+    <span class="n">simulated_historical_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">simulated_data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">])</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">simulated_historical_data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="n">K</span><span class="p">,</span>
+        <span class="n">trading_days</span><span class="p">,</span>
+    <span class="p">),</span> <span class="s2">&quot;Unexpected outgoing shape&quot;</span>
+    <span class="k">return</span> <span class="n">simulated_historical_data</span></div>
+
+
+<span class="k">def</span> <span class="nf">_find_optimal_stationary_bootstrap_block_length</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The first number is the optimal block length for a stationary</span>
+<span class="sd">    bootstrap, while the second number refers to the optimal block length</span>
+<span class="sd">    for the circular bootstrap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">b_star</span> <span class="o">=</span> <span class="n">optimal_block_length</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">b_star_sb</span> <span class="o">=</span> <span class="n">b_star</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">b_star_sb</span>
+    <span class="k">return</span> <span class="n">b_star_sb</span>
+
+
+<div class="viewcode-block" id="generate_bootstrapped_returns"><a class="viewcode-back" href="../../../simulation.html#src.simulation.task_simulate_sample.generate_bootstrapped_returns">[docs]</a><span class="k">def</span> <span class="nf">generate_bootstrapped_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uses the stationary bootstrapp method</span>
+<span class="sd">    to generate bootsstrap_sim_num many vectors</span>
+<span class="sd">    of 1 year length (==trading days). Optimal (average)</span>
+<span class="sd">    block length is computed in program</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (np.array(N,1)): Timeseries of logarithmic EURO/USD returns.</span>
+<span class="sd">        config (dict): dictionary of simulation parameters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.array(trading_days, bootsstrap_sim_num): Array of bootstrapped 1 year returns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># settings</span>
+    <span class="n">trading_days</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;trading_days&quot;</span><span class="p">]</span>
+    <span class="n">bootsstrap_sim_num</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;bootsstrap_sim_num&quot;</span><span class="p">]</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;simulation_seed&quot;</span><span class="p">])</span>
+
+    <span class="c1"># find optimal block length for stationary bootstrap</span>
+    <span class="n">optimal_block_length</span> <span class="o">=</span> <span class="n">_find_optimal_stationary_bootstrap_block_length</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="c1"># generate block_bootstrap data</span>
+    <span class="n">simulated_bootstrapped_data</span> <span class="o">=</span> <span class="n">stationary_bootstrap</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="n">block_length</span><span class="o">=</span><span class="n">optimal_block_length</span><span class="p">,</span>
+        <span class="n">replications</span><span class="o">=</span><span class="n">bootsstrap_sim_num</span><span class="p">,</span>
+        <span class="n">sub_sample_length</span><span class="o">=</span><span class="n">trading_days</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">simulated_bootstrapped_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">simulated_bootstrapped_data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">simulated_bootstrapped_data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="n">bootsstrap_sim_num</span><span class="p">,</span>
+        <span class="n">trading_days</span><span class="p">,</span>
+    <span class="p">),</span> <span class="s2">&quot;Unexpected outgoing shape&quot;</span>
+    <span class="k">return</span> <span class="n">simulated_bootstrapped_data</span></div>
+
+
+<span class="n">specifications</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span>
+        <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;generate_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_returns&quot;</span><span class="p">),</span>
+        <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_data_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;historical&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrapped&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;simulation_function, produces&quot;</span><span class="p">,</span> <span class="n">specifications</span><span class="p">)</span>
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">depends_on</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;sim_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;simulation_config.json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;raw_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;historical_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;raw_data.pickle&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">task_simulate_sample</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">simulation_function</span><span class="p">,</span> <span class="n">produces</span><span class="p">):</span>
+
+    <span class="c1"># Load locations after each round</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;raw_data&quot;</span><span class="p">],</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># drop first row</span>
+    <span class="n">raw_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">log_return</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="s2">&quot;log_return&quot;</span><span class="p">]</span>  <span class="c1"># .sub(raw_data[&quot;log_return&quot;].mean()) #de-mean</span>
+
+    <span class="c1"># load simulation configurations</span>
+    <span class="n">sim_config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;sim_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+
+    <span class="c1"># run simulations</span>
+    <span class="n">simulation_sample</span> <span class="o">=</span> <span class="n">simulation_function</span><span class="p">(</span><span class="n">log_return</span><span class="p">,</span> <span class="n">sim_config</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">produces</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_file</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">simulation_sample</span><span class="p">,</span> <span class="n">out_file</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Evaluate production functions.</span>
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="s2">&quot;bootstrapped&quot;</span>
+    <span class="n">produces</span> <span class="o">=</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;simulated_data_historical.pickle&quot;</span>
+    <span class="n">simulation_function</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;generate_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_returns&quot;</span><span class="p">)</span>
+
+    <span class="n">depends_on</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;sim_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;simulation_config.json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;raw_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;historical_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;raw_data.pickle&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">task_simulate_sample</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">simulation_function</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

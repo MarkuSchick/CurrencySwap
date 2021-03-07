@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial contracts &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulation analysis" href="simulation_analysis.html" />
+    <link rel="prev" title="Swap Contract/Simulation configurations" href="contract_specs.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>Financial contracts</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="contract_specs.html">Swap Contract/Simulation configurations</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="simulation_analysis.html">Simulation analysis</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="financial-contracts">
+<span id="id1"></span><h1>Financial contracts<a class="headerlink" href="#financial-contracts" title="Permalink to this headline">¶</a></h1>
+<p>The directory <em>src.financial_contracts</em> contains the payout logic of the swap contract</p>
+<div class="section" id="module-src.financial_contracts.swap_contract">
+<span id="the-swap-contract"></span><h2>The Swap contract<a class="headerlink" href="#module-src.financial_contracts.swap_contract" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.financial_contracts.swap_contract.payout_currency_swap">
+<code class="sig-name descname"><span class="pre">payout_currency_swap</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">final_exchange_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_exchange_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">USD_asset_allocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leverage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_on_euro_deposits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_on_usd_deposits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/financial_contracts/swap_contract.html#payout_currency_swap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.financial_contracts.swap_contract.payout_currency_swap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulates payoff profile of some currency swap contract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>final_exchange_rate</strong> (<em>pd.Series</em>) – Final EURO/USD exchange rate.</p></li>
+<li><p><strong>start_exchange_rate</strong> (<em>float</em>) – Initial EURO/USD exchange rate.</p></li>
+<li><p><strong>USD_asset_allocation</strong> (<em>float</em>) – Share of assets invested in USD. Must be between 0 and 1.</p></li>
+<li><p><strong>leverage</strong> (<em>float</em>) – Leverage factor of the currency swap. Must be larger than 1.</p></li>
+<li><p><strong>return_on_euro_deposits</strong> (<em>float</em>) – Return on euro deposits.</p></li>
+<li><p><strong>return_on_usd_deposits</strong> (<em>float</em>) – Return on usd deposits.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Payout of EURlong / EURshort certificate</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>EURpayout (pd.DataFrame)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.financial_contracts.test_swap_contract">
+<span id="the-tests-for-the-swap-contract"></span><h2>The tests for the Swap contract<a class="headerlink" href="#module-src.financial_contracts.test_swap_contract" title="Permalink to this headline">¶</a></h2>
+<p>Testing the payout of the Currency Swap.
+We test along 2 dimensions: |
+1) exchange rate changes |
+2) asset allocations |</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="contract_specs.html">Swap Contract/Simulation configurations</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="simulation_analysis.html">Simulation analysis</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.simulation_analysis.task_swap_payout_analysis &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.simulation_analysis.task_swap_payout_analysis</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.simulation_analysis.task_swap_payout_analysis</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Generate graphs to show how the</span>
+<span class="sd">payout of the swap contract changes</span>
+<span class="sd">depending on</span>
+
+<span class="sd">Data from both implemented methods is used:|</span>
+<span class="sd"># historical (based on historical 1 year returns) |</span>
+<span class="sd"># bootstrapped (stationary bootstrapped returns from historical sample) |</span>
+
+<span class="sd">Bootstrapping is done with the recombinator package.</span>
+<span class="sd">See: https://github.com/InvestmentSystems/recombinator</span>
+
+
+<span class="sd">Further simulation function can be parsed as arguments to the iterator object</span>
+<span class="sd">specifications.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytask</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="n">PLOT_ARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;markersize&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">}</span>
+
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">BLD</span>
+<span class="kn">from</span> <span class="nn">src.simulation_analysis.utility</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">merge_many_to_one_metadata</span><span class="p">,</span>
+    <span class="n">merge_one_to_one_metadata</span><span class="p">,</span>
+    <span class="n">extract_simulation_name</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_aggregate_runs_with_negative_payout</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">negative_payout_data</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">data</span><span class="p">[[</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">,</span> <span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;negative_payout&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">negative_payout_data_aggregated</span> <span class="o">=</span> <span class="n">negative_payout_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+        <span class="s2">&quot;swap_config_id&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">negative_payout_data_aggregated</span>
+
+
+<span class="k">def</span> <span class="nf">_get_runs_with_negative_payout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="n">_runs_with_negative_payout</span> <span class="o">=</span> <span class="n">_aggregate_runs_with_negative_payout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">_runs_with_negative_payout_merged</span> <span class="o">=</span> <span class="n">merge_one_to_one_metadata</span><span class="p">(</span>
+        <span class="n">_runs_with_negative_payout</span><span class="p">,</span> <span class="n">metadata</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">_runs_with_negative_payout_merged</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Dataframe is empty&quot;</span>
+    <span class="k">return</span> <span class="n">_runs_with_negative_payout_merged</span>
+
+
+<div class="viewcode-block" id="plot_negative_payout"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout_analysis.plot_negative_payout">[docs]</a><span class="k">def</span> <span class="nf">plot_negative_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">figure_path</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot share of runs with negative payout</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        payout_data (pd.DataFrame): dataset with payout data</span>
+<span class="sd">        payout_metadata  (pd.DataFrame): dataset with metainformation about run</span>
+<span class="sd">        (leverage, asset allocation)</span>
+<span class="sd">        figure_path (str): output path</span>
+<span class="sd">        simulation_name (str): Type of simulation (bootstrapp or historical)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runs_with_negative_payout</span> <span class="o">=</span> <span class="n">_get_runs_with_negative_payout</span><span class="p">(</span>
+        <span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span>
+    <span class="p">)</span>
+
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">()</span>
+    <span class="c1"># Initialize graph</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Share of runs with negative payout of any asset&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot ratio of runs with a negative payout</span>
+    <span class="n">plot_runs_with_negative_payout</span> <span class="o">=</span> <span class="n">runs_with_negative_payout</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;leverage&quot;</span><span class="p">:</span> <span class="s2">&quot;Leverage factor&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">plot_runs_with_negative_payout_pivot</span> <span class="o">=</span> <span class="n">plot_runs_with_negative_payout</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
+        <span class="s2">&quot;Leverage factor&quot;</span><span class="p">,</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span> <span class="s2">&quot;negative_payout&quot;</span>
+    <span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span>
+        <span class="n">plot_runs_with_negative_payout_pivot</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;.1%&quot;</span><span class="p">,</span>
+        <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">vmax</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Reds&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_calculate_total_payout_EUR</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">total_payout</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;total_payout&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">total_payout</span>
+
+
+<span class="k">def</span> <span class="nf">_keep_columns_total_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">):</span>
+    <span class="n">keep_payout_data</span> <span class="o">=</span> <span class="n">payout_data</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;leverage==2&quot;</span><span class="p">)[</span>
+        <span class="p">[</span><span class="s2">&quot;total_payout&quot;</span><span class="p">,</span> <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">keep_payout_data</span>
+
+
+<span class="k">def</span> <span class="nf">_get_run_total_payout_EUR</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="n">total_payout_data</span> <span class="o">=</span> <span class="n">_calculate_total_payout_EUR</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">total_payout_data</span> <span class="o">=</span> <span class="n">merge_many_to_one_metadata</span><span class="p">(</span><span class="n">total_payout_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="n">total_payout_aggregated</span> <span class="o">=</span> <span class="n">_keep_columns_total_payout</span><span class="p">(</span><span class="n">total_payout_data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">total_payout_aggregated</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Dataframe is empty&quot;</span>
+    <span class="k">return</span> <span class="n">total_payout_aggregated</span>
+
+
+<div class="viewcode-block" id="plot_expected_payout_EUR"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_EUR">[docs]</a><span class="k">def</span> <span class="nf">plot_expected_payout_EUR</span><span class="p">(</span>
+    <span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">figure_path</span><span class="p">,</span> <span class="n">simulation_name</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot total (EURlong + EURshort) expected payout in EURO</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        payout_data (pd.DataFrame): dataset with payout data</span>
+<span class="sd">        payout_metadata  (pd.DataFrame): dataset with metainformation about run</span>
+<span class="sd">        (leverage, asset allocation)</span>
+<span class="sd">        figure_path (str): output path</span>
+<span class="sd">        simulation_name (str): Type of simulation (bootstrapp or historical)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runs_total_payout</span> <span class="o">=</span> <span class="n">_get_run_total_payout_EUR</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">)</span>
+
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">()</span>
+    <span class="c1"># Initialize graph</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Expected total payout in Euro&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot average payout</span>
+    <span class="n">plot_total_payout_data</span> <span class="o">=</span> <span class="n">runs_total_payout</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;total_payout&quot;</span><span class="p">:</span> <span class="s2">&quot;Total payout&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">plot_total_payout_data</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Total payout&quot;</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_calculate_total_payout_USD</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">total_payout</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;EURlong payout in USD&quot;</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;EURshort payout in USD&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;total_payout&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">total_payout</span>
+
+
+<span class="k">def</span> <span class="nf">_get_run_total_payout_USD</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="n">total_payout_data</span> <span class="o">=</span> <span class="n">_calculate_total_payout_USD</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">total_payout_data</span> <span class="o">=</span> <span class="n">merge_many_to_one_metadata</span><span class="p">(</span><span class="n">total_payout_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="n">total_payout_aggregated</span> <span class="o">=</span> <span class="n">_keep_columns_total_payout</span><span class="p">(</span><span class="n">total_payout_data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">total_payout_aggregated</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Dataframe is empty&quot;</span>
+    <span class="k">return</span> <span class="n">total_payout_aggregated</span>
+
+
+<div class="viewcode-block" id="plot_expected_payout_USD"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_USD">[docs]</a><span class="k">def</span> <span class="nf">plot_expected_payout_USD</span><span class="p">(</span>
+    <span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">figure_path</span><span class="p">,</span> <span class="n">simulation_name</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot total (EURlong + EURshort) expected payout in USD</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        payout_data (pd.DataFrame): dataset with payout data</span>
+<span class="sd">        payout_metadata  (pd.DataFrame): dataset with metainformation about run</span>
+<span class="sd">        (leverage, asset allocation)</span>
+<span class="sd">        figure_path (str): output path</span>
+<span class="sd">        simulation_name (str): Type of simulation (bootstrapp or historical)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runs_total_payout</span> <span class="o">=</span> <span class="n">_get_run_total_payout_USD</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">()</span>
+    <span class="c1"># Initialize graph</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Expected total payout in  USD&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot average payout</span>
+    <span class="n">plot_total_payout_data</span> <span class="o">=</span> <span class="n">runs_total_payout</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;total_payout&quot;</span><span class="p">:</span> <span class="s2">&quot;Total payout&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">plot_total_payout_data</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Total payout&quot;</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_aggregate_run_eurlong_payout</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">aggregated_eurlong_payout_data</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">[[</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;swap_config_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aggregated_eurlong_payout_data</span>
+
+
+<span class="k">def</span> <span class="nf">_get_run_eurlong_payout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="n">run_eurlong_payout</span> <span class="o">=</span> <span class="n">_aggregate_run_eurlong_payout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">run_eurlong_payout_merged</span> <span class="o">=</span> <span class="n">merge_many_to_one_metadata</span><span class="p">(</span>
+        <span class="n">run_eurlong_payout</span><span class="p">,</span> <span class="n">metadata</span>
+    <span class="p">)</span>
+    <span class="n">run_eurlong_payout_merged</span> <span class="o">=</span> <span class="n">run_eurlong_payout_merged</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">,</span> <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">run_eurlong_payout_merged</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Dataframe is empty&quot;</span>
+    <span class="k">return</span> <span class="n">run_eurlong_payout_merged</span>
+
+
+<div class="viewcode-block" id="plot_eurlong_payout"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout_analysis.plot_eurlong_payout">[docs]</a><span class="k">def</span> <span class="nf">plot_eurlong_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">figure_path</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot the expected payout of the EURlong certificate</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        payout_data (pd.DataFrame): dataset with payout data</span>
+<span class="sd">        payout_metadata  (pd.DataFrame): dataset with metainformation about run</span>
+<span class="sd">        (leverage, asset allocation)</span>
+<span class="sd">        figure_path (str): output path</span>
+<span class="sd">        simulation_name (str): Type of simulation (bootstrapp or historical)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runs_eurlong_payout</span> <span class="o">=</span> <span class="n">_get_run_eurlong_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">)</span>
+
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">()</span>
+    <span class="c1"># Initialize graph</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Eurlong payout depending on certificate payout of certificate&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot average payout</span>
+    <span class="n">plot_runs_eurlong_payout</span> <span class="o">=</span> <span class="n">runs_eurlong_payout</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">plot_runs_eurlong_payout</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_aggregate_run_eurshort_payout</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">aggregated_eurshort_payout_data</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">data</span><span class="p">[[</span><span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;swap_config_id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">aggregated_eurshort_payout_data</span>
+
+
+<span class="k">def</span> <span class="nf">_get_run_eurshort_payout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="n">run_eurshort_payout</span> <span class="o">=</span> <span class="n">_aggregate_run_eurshort_payout</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">run_eurshort_payout_merged</span> <span class="o">=</span> <span class="n">merge_many_to_one_metadata</span><span class="p">(</span>
+        <span class="n">run_eurshort_payout</span><span class="p">,</span> <span class="n">metadata</span>
+    <span class="p">)</span>
+    <span class="n">run_eurshort_payout_merged</span> <span class="o">=</span> <span class="n">run_eurshort_payout_merged</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">,</span> <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">run_eurshort_payout_merged</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;Dataframe is empty&quot;</span>
+    <span class="k">return</span> <span class="n">run_eurshort_payout_merged</span>
+
+
+<div class="viewcode-block" id="plot_eurshort_payout"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout_analysis.plot_eurshort_payout">[docs]</a><span class="k">def</span> <span class="nf">plot_eurshort_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">figure_path</span><span class="p">,</span> <span class="n">simulation_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot the expected payout of the EURshort certificate</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        payout_data (pd.DataFrame): dataset with payout data</span>
+<span class="sd">        payout_metadata  (pd.DataFrame): dataset with metainformation about run</span>
+<span class="sd">        (leverage, asset allocation)</span>
+<span class="sd">        figure_path (str): output path</span>
+<span class="sd">        simulation_name (str): Type of simulation (bootstrapp or historical)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">runs_eurshort_payout</span> <span class="o">=</span> <span class="n">_get_run_eurshort_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">)</span>
+
+    <span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">()</span>
+    <span class="c1"># Initialize graph</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Eurshort payout depending on certificate payout of certificate&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot average payout</span>
+    <span class="n">plot_runs_eurshort_payout</span> <span class="o">=</span> <span class="n">runs_eurshort_payout</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">plot_runs_eurshort_payout</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Share of assets invested in USD&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">,</span>
+        <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+
+<span class="c1"># varying specifications</span>
+<span class="n">specifications</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;payout_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_payout&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;meta_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;metadata_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;negative_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_negative_payout.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_payout_EUR&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_total_payout_EUR.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_payout_USD&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_total_payout_USD.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;eurlong_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_eurlong_payout.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;eurshort_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_eurshort_payout.png&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;historical&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrapped&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;depends_on, produces&quot;</span><span class="p">,</span>
+    <span class="n">specifications</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">task_swap_payout_analysis</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">):</span>
+
+    <span class="c1"># load files</span>
+    <span class="n">payout_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;payout_data&quot;</span><span class="p">])</span>
+    <span class="n">payout_metadata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;meta_data&quot;</span><span class="p">])</span> 
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="n">extract_simulation_name</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;payout_data&quot;</span><span class="p">])</span>
+
+    <span class="c1"># plot negative payout</span>
+    <span class="n">plot_negative_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">produces</span><span class="p">[</span><span class="s1">&#39;negative_payout&#39;</span><span class="p">],</span> <span class="n">simulation_name</span><span class="p">)</span>
+
+    <span class="c1"># plot total payout (EUR)</span>
+    <span class="n">plot_expected_payout_EUR</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">produces</span><span class="p">[</span><span class="s1">&#39;total_payout_EUR&#39;</span><span class="p">],</span> <span class="n">simulation_name</span><span class="p">)</span>
+
+    <span class="c1"># plot total payout (USD)</span>
+    <span class="n">plot_expected_payout_USD</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">produces</span><span class="p">[</span><span class="s1">&#39;total_payout_USD&#39;</span><span class="p">],</span> <span class="n">simulation_name</span><span class="p">)</span>
+
+    <span class="c1"># plot EURlong payout</span>
+    <span class="n">plot_eurlong_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">produces</span><span class="p">[</span><span class="s1">&#39;eurlong_payout&#39;</span><span class="p">],</span> <span class="n">simulation_name</span><span class="p">)</span>
+
+    <span class="c1"># plot EURshort payout</span>
+    <span class="n">plot_eurshort_payout</span><span class="p">(</span><span class="n">payout_data</span><span class="p">,</span> <span class="n">payout_metadata</span><span class="p">,</span> <span class="n">produces</span><span class="p">[</span><span class="s1">&#39;eurshort_payout&#39;</span><span class="p">],</span> <span class="n">simulation_name</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="s2">&quot;bootstrapped&quot;</span>
+
+    <span class="n">depends_on</span> <span class="o">=</span>          <span class="p">{</span>
+            <span class="s2">&quot;payout_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_payout&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;meta_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;metadata_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    
+    <span class="n">produces</span> <span class="o">=</span>       <span class="p">{</span>
+            <span class="s2">&quot;negative_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_negative_payout.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_payout_EUR&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_total_payout_EUR.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_payout_USD&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_total_payout_USD.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;eurlong_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_eurlong_payout.png&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;eurshort_payout&quot;</span><span class="p">:</span>  <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">_eurshort_payout.png&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">task_swap_payout_analysis</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+
+
+
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

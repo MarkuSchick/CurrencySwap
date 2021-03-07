@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulation of EURO/USD exchange rate over 1 year horizon &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Swap Contract/Simulation configurations" href="contract_specs.html" />
+    <link rel="prev" title="Data download" href="download_data.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>Simulation of EURO/USD exchange rate over 1 year horizon</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="download_data.html">Data download</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="contract_specs.html">Swap Contract/Simulation configurations</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <span class="target" id="simulation"></span><div class="section" id="simulation-of-euro-usd-exchange-rate-over-1-year-horizon">
+<h1>Simulation of EURO/USD exchange rate over 1 year horizon<a class="headerlink" href="#simulation-of-euro-usd-exchange-rate-over-1-year-horizon" title="Permalink to this headline">¶</a></h1>
+<p>Documentation of the code in <em>src.simulation</em>.</p>
+<div class="section" id="simulates-1-year-returns-with-two-methods">
+<h2>Simulates 1 year returns with two methods<a class="headerlink" href="#simulates-1-year-returns-with-two-methods" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-src.simulation.task_simulate_sample"></span><p>Generates simulated EURO / USD returns for a period
+specified in simulate_config.json.
+Saves simulated samples as pickle.</p>
+<p>Implemented methods:|
+# historical (based on historical 1 year returns) |
+# bootstrapped (stationary bootstrapped returns from historical sample) |</p>
+<p>Bootstrapping is done with the recombinator package.
+See: <a class="reference external" href="https://github.com/InvestmentSystems/recombinator">https://github.com/InvestmentSystems/recombinator</a></p>
+<p>Further simulation function can be parsed as arguments to the iterator object
+specifications.</p>
+<dl class="py function">
+<dt id="src.simulation.task_simulate_sample.generate_bootstrapped_returns">
+<code class="sig-name descname"><span class="pre">generate_bootstrapped_returns</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation/task_simulate_sample.html#generate_bootstrapped_returns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation.task_simulate_sample.generate_bootstrapped_returns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the stationary bootstrapp method
+to generate bootsstrap_sim_num many vectors
+of 1 year length (==trading days). Optimal (average)
+block length is computed in program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.array</em><em>(</em><em>N</em><em>,</em><em>1</em><em>)</em>) – Timeseries of logarithmic EURO/USD returns.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – dictionary of simulation parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Array of bootstrapped 1 year returns</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array(trading_days, bootsstrap_sim_num)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation.task_simulate_sample.generate_historical_returns">
+<code class="sig-name descname"><span class="pre">generate_historical_returns</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation/task_simulate_sample.html#generate_historical_returns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation.task_simulate_sample.generate_historical_returns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stack vectors of (all) historical periods starting
+from the introduction of the EURO in 1999 of length
+of 1 year next to each other</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.array</em><em>(</em><em>N</em><em>,</em><em>1</em><em>)</em>) – Timeseries of logarithmic EURO/USD returns.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – dictionary of simulation parameters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DataFrame of K historical series of
+1 year returns of length trading days.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame(trading_days, K)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="plots-the-distribution-of-1-year-eur-usd-returns-of-both-methods">
+<h2>Plots the distribution of 1-year EUR/USD returns of both methods<a class="headerlink" href="#plots-the-distribution-of-1-year-eur-usd-returns-of-both-methods" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-src.simulation.task_exchange_rate_change"></span><p>Plot the distribution of 1-Year EURO/USD returns</p>
+<dl class="py function">
+<dt id="src.simulation.task_exchange_rate_change.plot_total_change">
+<code class="sig-name descname"><span class="pre">plot_total_change</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation/task_exchange_rate_change.html#plot_total_change"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation.task_exchange_rate_change.plot_total_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the final exchange rate resulting from 1 year exchange rate
+returns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – Pandas DataFrame cumulated exchange rate movements.</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – path of output file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="download_data.html">Data download</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="contract_specs.html">Swap Contract/Simulation configurations</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.simulation_analysis.utility &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.simulation_analysis.utility</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.simulation_analysis.utility</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; includes utility functions</span>
+<span class="sd">used in the analysis task_swap_payout.py/task_swap_payout_analysis.py&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">def</span> <span class="nf">get_total_exchange_rate_change</span><span class="p">(</span><span class="n">raw_data</span><span class="p">):</span>
+    <span class="n">total_change</span> <span class="o">=</span> <span class="n">raw_data</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;columns&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">total_change</span>
+
+<div class="viewcode-block" id="generate_missing_directories"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.utility.generate_missing_directories">[docs]</a><span class="k">def</span> <span class="nf">generate_missing_directories</span><span class="p">(</span><span class="n">out_paths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate directories if they do not exist</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        out_paths (dict): {&#39;filename&#39;: &#39;outpath&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">out_paths</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">file_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_directory</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">file_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="merge_many_to_one_metadata"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.utility.merge_many_to_one_metadata">[docs]</a><span class="k">def</span> <span class="nf">merge_many_to_one_metadata</span><span class="p">(</span><span class="n">not_aggregated_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; m : 1 merge. Raises error if rows are only identified</span>
+<span class="sd">        in one dataset &quot;&quot;&quot;</span>
+    <span class="n">merged_dataset</span> <span class="o">=</span> <span class="n">not_aggregated_data</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;many_to_one&quot;</span><span class="p">,</span>
+        <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="n">merged_dataset</span><span class="p">[</span><span class="s2">&quot;_merge&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;both&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(),</span> <span class="s2">&quot;Rows can not be merged/ Metadata fraudulent&quot;</span>
+    <span class="n">merged_dataset</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_merge&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">merged_dataset</span></div>
+
+
+<div class="viewcode-block" id="merge_one_to_one_metadata"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.utility.merge_one_to_one_metadata">[docs]</a><span class="k">def</span> <span class="nf">merge_one_to_one_metadata</span><span class="p">(</span><span class="n">aggregated_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; 1 : 1 merge. Raises error if rows are only identified</span>
+<span class="sd">    in one dataset &quot;&quot;&quot;</span>
+    <span class="n">merged_dataset</span> <span class="o">=</span> <span class="n">aggregated_data</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">validate</span><span class="o">=</span><span class="s2">&quot;one_to_one&quot;</span><span class="p">,</span>
+        <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="n">merged_dataset</span><span class="p">[</span><span class="s2">&quot;_merge&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;both&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(),</span> <span class="s2">&quot;Rows can not be merged/ Metadata fraudulent&quot;</span>
+    <span class="n">merged_dataset</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;_merge&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">merged_dataset</span></div>
+
+<div class="viewcode-block" id="extract_simulation_name"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.utility.extract_simulation_name">[docs]</a><span class="k">def</span> <span class="nf">extract_simulation_name</span><span class="p">(</span><span class="n">data_path</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; expected path is from type /filename_with_underscore_SimulationName</span>
+<span class="sd">        returns SimulationName</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data_path (str): Windows path of file</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        [str]: name of simulation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">data_path</span><span class="o">.</span><span class="n">stem</span> 
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">simulation_name</span></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

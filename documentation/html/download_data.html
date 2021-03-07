@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data download &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulation of EURO/USD exchange rate over 1 year horizon" href="simulation.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>Data download</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="introduction.html">Introduction</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="simulation.html">Simulation of EURO/USD exchange rate over 1 year horizon</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="data-download">
+<span id="download-data"></span><h1>Data download<a class="headerlink" href="#data-download" title="Permalink to this headline">¶</a></h1>
+<p>Documentation of the code in <em>src/download_data</em>.</p>
+<div class="section" id="download-euro-usd-exchange-rate-data">
+<h2>Download EURO/USD exchange rate data<a class="headerlink" href="#download-euro-usd-exchange-rate-data" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-src.download_data.task_get_exchange_rate_data"></span><p>Downloads the daily EURO/USD exchange rate from
+FRED and saves output as a pickle.
+url: <a class="reference external" href="https://fred.stlouisfed.org/series/DEXUSEU">https://fred.stlouisfed.org/series/DEXUSEU</a></p>
+</div>
+<div class="section" id="descriptive-analysis-of-the-time-series">
+<h2>Descriptive analysis of the Time series<a class="headerlink" href="#descriptive-analysis-of-the-time-series" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-src.download_data.task_descriptive_analysis"></span><dl class="py function">
+<dt id="src.download_data.task_descriptive_analysis.plot_historical_timeseries">
+<code class="sig-name descname"><span class="pre">plot_historical_timeseries</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">euro_usd_pd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/download_data/task_descriptive_analysis.html#plot_historical_timeseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.download_data.task_descriptive_analysis.plot_historical_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the historical EURO / USD exchange rate and percentage returns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>euro_usd_pd</strong> (<em>pd.DataFrame</em>) – daily EURO / USD data (must include price,
+pct_change and date as index).</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – path to output graph.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="introduction.html">Introduction</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="simulation.html">Simulation of EURO/USD exchange rate over 1 year horizon</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

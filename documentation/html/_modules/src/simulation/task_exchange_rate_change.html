@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.simulation.task_exchange_rate_change &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.simulation.task_exchange_rate_change</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.simulation.task_exchange_rate_change</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Plot the distribution of 1-Year EURO/USD returns</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">mticker</span>
+<span class="kn">import</span> <span class="nn">pytask</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">BLD</span>
+<span class="kn">from</span> <span class="nn">src.simulation_analysis.utility</span> <span class="kn">import</span> <span class="n">get_total_exchange_rate_change</span>
+
+<span class="n">PLOT_ARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;markersize&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="plot_total_change"><a class="viewcode-back" href="../../../simulation.html#src.simulation.task_exchange_rate_change.plot_total_change">[docs]</a><span class="k">def</span> <span class="nf">plot_total_change</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the final exchange rate resulting from 1 year exchange rate</span>
+<span class="sd">    returns</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (pd.DataFrame): Pandas DataFrame cumulated exchange rate movements.</span>
+<span class="sd">        path (string): path of output file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># set up multiple graphs</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;EURO/USD exchange rate&quot;</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Final exchange rate&quot;</span><span class="p">)</span>
+
+    <span class="c1"># plot EURO/USD price</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelbottom</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s2">&quot;azure&quot;</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;Final exchange rate&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="c1"># set limits</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
+
+    <span class="c1"># format labels</span>
+    <span class="n">xlabels</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">/</span> <span class="mi">10</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">xlabels</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">,.2%</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xlabels</span><span class="p">])</span>  <span class="c1"># format y axis</span>
+
+    <span class="c1"># ax.set_xlabel(&#39;&#39;)  # remove x label</span>
+
+    <span class="c1"># save result to folder</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<span class="n">specifications</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span>
+        <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_data_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+        <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;euro_usd_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;historical&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrapped&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;depends_on, produces&quot;</span><span class="p">,</span> <span class="n">specifications</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">task_final_exchange_rate</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">total_change</span> <span class="o">=</span> <span class="n">get_total_exchange_rate_change</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+    <span class="n">plot_total_change</span><span class="p">(</span><span class="n">total_change</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Evaluate production functions.</span>
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="s2">&quot;historical&quot;</span>
+    <span class="n">depends_on</span> <span class="o">=</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_data_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span>
+    <span class="n">produces</span> <span class="o">=</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;euro_usd_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.png&quot;</span>
+    <span class="n">task_final_exchange_rate</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

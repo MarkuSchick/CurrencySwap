@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.financial_contracts.swap_contract &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.financial_contracts.swap_contract</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.financial_contracts.swap_contract</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="k">def</span> <span class="nf">_convert_to_USD</span><span class="p">(</span><span class="n">exchange_rate</span><span class="p">,</span> <span class="n">EURO_amount</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">EURO_amount</span> <span class="o">*</span> <span class="n">exchange_rate</span>
+
+
+<span class="k">def</span> <span class="nf">_get_collateral_value</span><span class="p">(</span>
+    <span class="n">euro_deposits</span><span class="p">,</span>
+    <span class="n">usd_deposits</span><span class="p">,</span>
+    <span class="n">return_on_euro_deposits</span><span class="p">,</span>
+    <span class="n">return_on_usd_deposits</span><span class="p">,</span>
+    <span class="n">exchange_rate</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">euro_deposits</span><span class="p">,</span> <span class="n">usd_deposits</span> <span class="o">=</span> <span class="n">_apply_return</span><span class="p">(</span>
+        <span class="n">euro_deposits</span><span class="p">,</span> <span class="n">usd_deposits</span><span class="p">,</span> <span class="n">return_on_euro_deposits</span><span class="p">,</span> <span class="n">return_on_usd_deposits</span>
+    <span class="p">)</span>
+    <span class="n">total_deposits</span> <span class="o">=</span> <span class="n">usd_deposits</span> <span class="o">+</span> <span class="n">_convert_to_USD</span><span class="p">(</span><span class="n">exchange_rate</span><span class="p">,</span> <span class="n">euro_deposits</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">total_deposits</span>
+
+
+<span class="k">def</span> <span class="nf">_apply_return</span><span class="p">(</span>
+    <span class="n">euro_deposits</span><span class="p">,</span> <span class="n">usd_deposits</span><span class="p">,</span> <span class="n">return_on_euro_deposits</span><span class="p">,</span> <span class="n">return_on_usd_deposits</span>
+<span class="p">):</span>
+    <span class="n">euro_deposits</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">return_on_euro_deposits</span><span class="p">)</span> <span class="o">*</span> <span class="n">euro_deposits</span>
+    <span class="n">usd_deposits</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">return_on_usd_deposits</span><span class="p">)</span> <span class="o">*</span> <span class="n">usd_deposits</span>
+    <span class="k">return</span> <span class="n">euro_deposits</span><span class="p">,</span> <span class="n">usd_deposits</span>
+
+
+<span class="k">def</span> <span class="nf">_get_payout_factor</span><span class="p">(</span><span class="n">exchange_rate</span><span class="p">,</span> <span class="n">start_exchange_rate</span><span class="p">,</span> <span class="n">leverage</span><span class="p">):</span>
+    <span class="n">EURlong_payout_fac</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">exchange_rate</span> <span class="o">-</span> <span class="n">start_exchange_rate</span><span class="p">)</span> <span class="o">/</span> <span class="n">start_exchange_rate</span> <span class="o">*</span> <span class="n">leverage</span>
+    <span class="p">)</span>
+    <span class="n">EURshort_payout_fac</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">EURlong_payout_fac</span>
+    <span class="k">return</span> <span class="n">EURlong_payout_fac</span><span class="p">,</span> <span class="n">EURshort_payout_fac</span>
+
+
+<div class="viewcode-block" id="payout_currency_swap"><a class="viewcode-back" href="../../../financial_contracts.html#src.financial_contracts.swap_contract.payout_currency_swap">[docs]</a><span class="k">def</span> <span class="nf">payout_currency_swap</span><span class="p">(</span>
+    <span class="n">final_exchange_rate</span><span class="p">,</span>
+    <span class="n">start_exchange_rate</span><span class="p">,</span>
+    <span class="n">USD_asset_allocation</span><span class="p">,</span>
+    <span class="n">leverage</span><span class="p">,</span>
+    <span class="n">return_on_euro_deposits</span><span class="p">,</span>
+    <span class="n">return_on_usd_deposits</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simulates payoff profile of some currency swap contract.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        final_exchange_rate (pd.Series): Final EURO/USD exchange rate.</span>
+<span class="sd">        start_exchange_rate (float): Initial EURO/USD exchange rate.</span>
+<span class="sd">        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.</span>
+<span class="sd">        leverage (float): Leverage factor of the currency swap. Must be larger than 1.</span>
+<span class="sd">        return_on_euro_deposits (float): Return on euro deposits.</span>
+<span class="sd">        return_on_usd_deposits (float): Return on usd deposits.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        EURpayout (pd.DataFrame): Payout of EURlong / EURshort certificate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">leverage</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Leverage factor must be higher than 1&quot;</span>
+    <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">USD_asset_allocation</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Share of assets invested must be positive&quot;</span>
+
+    <span class="c1"># allocate assets</span>
+    <span class="n">euro_deposits</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">USD_asset_allocation</span><span class="p">)</span> <span class="o">/</span> <span class="n">start_exchange_rate</span>
+    <span class="n">usd_deposits</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">USD_asset_allocation</span>
+
+    <span class="c1"># calculate current value of collateral</span>
+    <span class="n">collateral</span> <span class="o">=</span> <span class="n">_get_collateral_value</span><span class="p">(</span>
+        <span class="n">euro_deposits</span><span class="p">,</span>
+        <span class="n">usd_deposits</span><span class="p">,</span>
+        <span class="n">return_on_euro_deposits</span><span class="p">,</span>
+        <span class="n">return_on_usd_deposits</span><span class="p">,</span>
+        <span class="n">final_exchange_rate</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">collateral_ex_premium</span> <span class="o">=</span> <span class="n">_get_collateral_value</span><span class="p">(</span>
+        <span class="n">euro_deposits</span><span class="p">,</span>
+        <span class="n">usd_deposits</span><span class="p">,</span>
+        <span class="n">return_on_euro_deposits</span><span class="p">,</span>
+        <span class="n">return_on_usd_deposits</span><span class="p">,</span>
+        <span class="n">start_exchange_rate</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">forex_premium</span> <span class="o">=</span> <span class="n">collateral</span> <span class="o">-</span> <span class="n">collateral_ex_premium</span>
+
+    <span class="c1"># get payout factor</span>
+    <span class="n">EURlong_payout_fac</span><span class="p">,</span> <span class="n">EURshort_payout_fac</span> <span class="o">=</span> <span class="n">_get_payout_factor</span><span class="p">(</span>
+        <span class="n">final_exchange_rate</span><span class="p">,</span> <span class="n">start_exchange_rate</span><span class="p">,</span> <span class="n">leverage</span>
+    <span class="p">)</span>
+
+    <span class="c1"># redeem EURlong, EURshort</span>
+    <span class="n">eurlong_payout</span> <span class="o">=</span> <span class="n">EURlong_payout_fac</span> <span class="o">*</span> <span class="n">collateral_ex_premium</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">eurshort_payout</span> <span class="o">=</span> <span class="n">EURshort_payout_fac</span> <span class="o">*</span> <span class="n">collateral_ex_premium</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">forex_premium</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_series_equal</span><span class="p">(</span>
+        <span class="n">eurlong_payout</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">eurshort_payout</span><span class="p">),</span> <span class="n">collateral</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.0001</span>
+    <span class="p">)</span>
+
+    <span class="n">EURpayout</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;EURlong payout&quot;</span><span class="p">:</span> <span class="n">eurlong_payout</span><span class="p">,</span>
+            <span class="s2">&quot;EURshort payout&quot;</span><span class="p">:</span> <span class="n">eurshort_payout</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">EURshort_payout_fac</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">EURpayout</span></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

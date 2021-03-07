@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulation analysis &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Presentation" href="paper.html" />
+    <link rel="prev" title="Financial contracts" href="financial_contracts.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>Simulation analysis</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="financial_contracts.html">Financial contracts</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="paper.html">Presentation</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="simulation-analysis">
+<span id="id1"></span><h1>Simulation analysis<a class="headerlink" href="#simulation-analysis" title="Permalink to this headline">¶</a></h1>
+<p>The directory <em>src.simulation_analysis</em> contains the payout given simulated EURO/USD returns. This is the core of the project</p>
+<div class="section" id="module-src.simulation_analysis.task_swap_payout">
+<span id="computes-the-payout-of-the-swap"></span><h2>Computes the payout of the swap<a class="headerlink" href="#module-src.simulation_analysis.task_swap_payout" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout.calc_final_payout">
+<code class="sig-name descname"><span class="pre">calc_final_payout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cumulative_forex_change</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leverage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">USD_asset_allocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout.html#calc_final_payout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout.calc_final_payout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the finale payout of the currency swap contract given macroeconomic conditions
+and configurations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cumulative_forex_change</strong> (<em>pd.Series</em>) – cumulative EUR/USD exchange rate change over 1</p></li>
+<li><p><strong>year.</strong> – </p></li>
+<li><p><strong>leverage</strong> (<em>float</em>) – Leverage factor of the currency swap. Must be larger than 1.</p></li>
+<li><p><strong>USD_asset_allocation</strong> (<em>float</em>) – Share of assets invested in USD. Must be between 0 and 1.</p></li>
+<li><p><strong>scenario_config</strong> (<em>dict</em>) – assumed macroeconomic conditions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Payout of swap contract (in EURO &amp; USD).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(pd.DataFrame)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout.filename_to_metadata">
+<code class="sig-name descname"><span class="pre">filename_to_metadata</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leverage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">USD_asset_allocation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout.html#filename_to_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout.filename_to_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write information about simulation configurations to a pd.DataFrame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>run_id</strong> (<em>id</em>) – Id of simulation configuration.</p></li>
+<li><p><strong>leverage</strong> (<em>float</em>) – Leverage factor of the currency swap</p></li>
+<li><p><strong>USD_asset_allocation</strong> (<em>float</em>) – Share of assets invested in USD. Must be between 0 and 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>background information of the simulation run.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(pd.DataFrame)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.simulation_analysis.utility">
+<span id="utility-functions"></span><h2>Utility functions<a class="headerlink" href="#module-src.simulation_analysis.utility" title="Permalink to this headline">¶</a></h2>
+<p>includes utility functions
+used in the analysis task_swap_payout.py/task_swap_payout_analysis.py</p>
+<dl class="py function">
+<dt id="src.simulation_analysis.utility.extract_simulation_name">
+<code class="sig-name descname"><span class="pre">extract_simulation_name</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/utility.html#extract_simulation_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.utility.extract_simulation_name" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>expected path is from type /filename_with_underscore_SimulationName</dt><dd><p>returns SimulationName</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_path</strong> (<em>str</em>) – Windows path of file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>name of simulation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.utility.generate_missing_directories">
+<code class="sig-name descname"><span class="pre">generate_missing_directories</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_paths</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/utility.html#generate_missing_directories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.utility.generate_missing_directories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate directories if they do not exist</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>out_paths</strong> (<em>dict</em>) – {‘filename’: ‘outpath’}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.utility.merge_many_to_one_metadata">
+<code class="sig-name descname"><span class="pre">merge_many_to_one_metadata</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">not_aggregated_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/utility.html#merge_many_to_one_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.utility.merge_many_to_one_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>m : 1 merge. Raises error if rows are only identified
+in one dataset</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.utility.merge_one_to_one_metadata">
+<code class="sig-name descname"><span class="pre">merge_one_to_one_metadata</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggregated_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/utility.html#merge_one_to_one_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.utility.merge_one_to_one_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>1 : 1 merge. Raises error if rows are only identified
+in one dataset</p>
+</dd></dl>
+
+</div>
+<div class="section" id="plots-the-payout-of-the-swap-given-various-parameters">
+<h2>Plots the payout of the swap given various parameters<a class="headerlink" href="#plots-the-payout-of-the-swap-given-various-parameters" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-src.simulation_analysis.task_swap_payout_analysis"></span><p>Generate graphs to show how the
+payout of the swap contract changes
+depending on</p>
+<p>Data from both implemented methods is used:|
+# historical (based on historical 1 year returns) |
+# bootstrapped (stationary bootstrapped returns from historical sample) |</p>
+<p>Bootstrapping is done with the recombinator package.
+See: <a class="reference external" href="https://github.com/InvestmentSystems/recombinator">https://github.com/InvestmentSystems/recombinator</a></p>
+<p>Further simulation function can be parsed as arguments to the iterator object
+specifications.</p>
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout_analysis.plot_eurlong_payout">
+<code class="sig-name descname"><span class="pre">plot_eurlong_payout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payout_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payout_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout_analysis.html#plot_eurlong_payout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout_analysis.plot_eurlong_payout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the expected payout of the EURlong certificate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payout_data</strong> (<em>pd.DataFrame</em>) – dataset with payout data</p></li>
+<li><p><strong>payout_metadata</strong> (<em>pd.DataFrame</em>) – dataset with metainformation about run</p></li>
+<li><p><strong>(</strong><strong>leverage</strong> – </p></li>
+<li><p><strong>allocation</strong><strong>)</strong> (<em>asset</em>) – </p></li>
+<li><p><strong>figure_path</strong> (<em>str</em>) – output path</p></li>
+<li><p><strong>simulation_name</strong> (<em>str</em>) – Type of simulation (bootstrapp or historical)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout_analysis.plot_eurshort_payout">
+<code class="sig-name descname"><span class="pre">plot_eurshort_payout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payout_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payout_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout_analysis.html#plot_eurshort_payout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout_analysis.plot_eurshort_payout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the expected payout of the EURshort certificate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payout_data</strong> (<em>pd.DataFrame</em>) – dataset with payout data</p></li>
+<li><p><strong>payout_metadata</strong> (<em>pd.DataFrame</em>) – dataset with metainformation about run</p></li>
+<li><p><strong>(</strong><strong>leverage</strong> – </p></li>
+<li><p><strong>allocation</strong><strong>)</strong> (<em>asset</em>) – </p></li>
+<li><p><strong>figure_path</strong> (<em>str</em>) – output path</p></li>
+<li><p><strong>simulation_name</strong> (<em>str</em>) – Type of simulation (bootstrapp or historical)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_EUR">
+<code class="sig-name descname"><span class="pre">plot_expected_payout_EUR</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payout_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payout_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout_analysis.html#plot_expected_payout_EUR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_EUR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot total (EURlong + EURshort) expected payout in EURO</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payout_data</strong> (<em>pd.DataFrame</em>) – dataset with payout data</p></li>
+<li><p><strong>payout_metadata</strong> (<em>pd.DataFrame</em>) – dataset with metainformation about run</p></li>
+<li><p><strong>(</strong><strong>leverage</strong> – </p></li>
+<li><p><strong>allocation</strong><strong>)</strong> (<em>asset</em>) – </p></li>
+<li><p><strong>figure_path</strong> (<em>str</em>) – output path</p></li>
+<li><p><strong>simulation_name</strong> (<em>str</em>) – Type of simulation (bootstrapp or historical)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_USD">
+<code class="sig-name descname"><span class="pre">plot_expected_payout_USD</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payout_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payout_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout_analysis.html#plot_expected_payout_USD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout_analysis.plot_expected_payout_USD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot total (EURlong + EURshort) expected payout in USD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payout_data</strong> (<em>pd.DataFrame</em>) – dataset with payout data</p></li>
+<li><p><strong>payout_metadata</strong> (<em>pd.DataFrame</em>) – dataset with metainformation about run</p></li>
+<li><p><strong>(</strong><strong>leverage</strong> – </p></li>
+<li><p><strong>allocation</strong><strong>)</strong> (<em>asset</em>) – </p></li>
+<li><p><strong>figure_path</strong> (<em>str</em>) – output path</p></li>
+<li><p><strong>simulation_name</strong> (<em>str</em>) – Type of simulation (bootstrapp or historical)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.simulation_analysis.task_swap_payout_analysis.plot_negative_payout">
+<code class="sig-name descname"><span class="pre">plot_negative_payout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payout_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payout_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/simulation_analysis/task_swap_payout_analysis.html#plot_negative_payout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.simulation_analysis.task_swap_payout_analysis.plot_negative_payout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot share of runs with negative payout</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payout_data</strong> (<em>pd.DataFrame</em>) – dataset with payout data</p></li>
+<li><p><strong>payout_metadata</strong> (<em>pd.DataFrame</em>) – dataset with metainformation about run</p></li>
+<li><p><strong>(</strong><strong>leverage</strong> – </p></li>
+<li><p><strong>allocation</strong><strong>)</strong> (<em>asset</em>) – </p></li>
+<li><p><strong>figure_path</strong> (<em>str</em>) – output path</p></li>
+<li><p><strong>simulation_name</strong> (<em>str</em>) – Type of simulation (bootstrapp or historical)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="financial_contracts.html">Financial contracts</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="paper.html">Presentation</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

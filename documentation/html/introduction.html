@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Introduction &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data download" href="download_data.html" />
+    <link rel="prev" title="Welcome to the final project Currency Swap project’s documentation!" href="index.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>Introduction</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        «&#160;&#160;<a href="index.html">Welcome to the final project Currency Swap project’s documentation!</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="download_data.html">Data download</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="introduction">
+<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>The Project analyses the historical EURO/USD exchange rate to find parameters for a potential Currency Swap living on a blockchain.</p>
+<p>We try various asset allocations and leverage factors to find a optimal design for such contract.
+Competing designs can be easily added to the contracts folder and we can perform analyses for them.
+Graphs are produced to visualize the relationship between historical EURO/USD volatility, contract parameterization
+and (realized) payout. For this we take an backward perspective and simulated returns based on historical data of the EURO / USD exchange rate (1999-Today).</p>
+<p>The aim is not to find a prediction of future of exchange rate movements, but show how the swap contract
+would have payed out in the past.
+The aim is to find the highest leverage factor available possible to pay out with a limited amount of collateral.
+Background: Since financial claims can not be <em>enforced</em> on a blockchain we need to have hold collateral to full fill these claims.</p>
+<p>They are exported to a short presentation and research paper.</p>
+<div class="section" id="the-projects-workflow">
+<span id="getting-started"></span><h2>The project’s workflow<a class="headerlink" href="#the-projects-workflow" title="Permalink to this headline">¶</a></h2>
+<p>The project follows the following steps:</p>
+<ol class="arabic simple">
+<li><p>Download data</p></li>
+<li><p>Simulate 1-Year EURO/USD returns</p></li>
+<li><p>Simulate payouts given Swap contract configurations</p></li>
+<li><p>Research paper and presentations</p></li>
+</ol>
+<p>Graphs are created along the way.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        «&#160;&#160;<a href="index.html">Welcome to the final project Currency Swap project’s documentation!</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="download_data.html">Data download</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

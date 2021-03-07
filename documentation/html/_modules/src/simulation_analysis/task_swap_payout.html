@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.simulation_analysis.task_swap_payout &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.simulation_analysis.task_swap_payout</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.simulation_analysis.task_swap_payout</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytask</span>
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">BLD</span>
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">SRC</span>
+<span class="kn">from</span> <span class="nn">src.financial_contracts.swap_contract</span> <span class="kn">import</span> <span class="n">payout_currency_swap</span>
+<span class="kn">from</span> <span class="nn">src.simulation_analysis.utility</span> <span class="kn">import</span> <span class="n">get_total_exchange_rate_change</span>
+<span class="kn">from</span> <span class="nn">src.simulation_analysis.utility</span> <span class="kn">import</span> <span class="n">generate_missing_directories</span>
+<div class="viewcode-block" id="calc_final_payout"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout.calc_final_payout">[docs]</a><span class="k">def</span> <span class="nf">calc_final_payout</span><span class="p">(</span>
+    <span class="n">cumulative_forex_change</span><span class="p">,</span> <span class="n">leverage</span><span class="p">,</span> <span class="n">USD_asset_allocation</span><span class="p">,</span> <span class="n">scenario_config</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the finale payout of the currency swap contract given macroeconomic conditions</span>
+<span class="sd">    and configurations</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cumulative_forex_change (pd.Series): cumulative EUR/USD exchange rate change over 1</span>
+<span class="sd">        year.</span>
+<span class="sd">        leverage (float): Leverage factor of the currency swap. Must be larger than 1.</span>
+<span class="sd">        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.</span>
+<span class="sd">        scenario_config (dict): assumed macroeconomic conditions.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (pd.DataFrame): Payout of swap contract (in EURO &amp; USD).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">leverage</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Leverage factor must be higher than 1&quot;</span>
+    <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">USD_asset_allocation</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Share of assets invested must be positive&quot;</span>
+
+    <span class="c1"># initialize</span>
+    <span class="n">start_exchange_rate</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">final_exchange_rate</span> <span class="o">=</span> <span class="n">start_exchange_rate</span> <span class="o">+</span> <span class="n">cumulative_forex_change</span>
+
+    <span class="c1"># calculate payout data</span>
+    <span class="n">payout_data</span> <span class="o">=</span> <span class="n">payout_currency_swap</span><span class="p">(</span>
+        <span class="n">final_exchange_rate</span><span class="o">=</span><span class="n">final_exchange_rate</span><span class="p">,</span>
+        <span class="n">start_exchange_rate</span><span class="o">=</span><span class="n">start_exchange_rate</span><span class="p">,</span>
+        <span class="n">leverage</span><span class="o">=</span><span class="n">leverage</span><span class="p">,</span>
+        <span class="n">USD_asset_allocation</span><span class="o">=</span><span class="n">USD_asset_allocation</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">scenario_config</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># calculate payout in EURO terms</span>
+    <span class="n">payout_data</span> <span class="o">=</span> <span class="n">payout_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;EURlong payout&quot;</span><span class="p">:</span> <span class="s2">&quot;EURlong payout in USD&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;EURshort payout&quot;</span><span class="p">:</span> <span class="s2">&quot;EURshort payout in USD&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;exchange_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">final_exchange_rate</span>
+    <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;EURlong payout in EURO&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;EURlong payout in USD&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">div</span><span class="p">(</span>
+        <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;exchange_rate&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;EURshort payout in EURO&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;EURshort payout in USD&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">div</span><span class="p">(</span>
+        <span class="n">payout_data</span><span class="p">[</span><span class="s2">&quot;exchange_rate&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">payout_data</span></div>
+
+
+<div class="viewcode-block" id="filename_to_metadata"><a class="viewcode-back" href="../../../simulation_analysis.html#src.simulation_analysis.task_swap_payout.filename_to_metadata">[docs]</a><span class="k">def</span> <span class="nf">filename_to_metadata</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">leverage</span><span class="p">,</span> <span class="n">USD_asset_allocation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write information about simulation configurations to a pd.DataFrame</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        run_id (id): Id of simulation configuration.</span>
+<span class="sd">        leverage (float): Leverage factor of the currency swap</span>
+<span class="sd">        USD_asset_allocation (float): Share of assets invested in USD. Must be between 0 and 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (pd.DataFrame): background information of the simulation run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;swap_config_id&quot;</span><span class="p">:</span> <span class="n">run_id</span><span class="p">,</span>
+            <span class="s2">&quot;leverage&quot;</span><span class="p">:</span> <span class="n">leverage</span><span class="p">,</span>
+            <span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">:</span> <span class="n">USD_asset_allocation</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<span class="c1"># varying specifications</span>
+<span class="n">specifications</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;simulated_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_data_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;scenario_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;scenario_config.json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;swap_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;swap_config.json&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;payout_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_payout&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;meta_data&quot;</span><span class="p">:</span><span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;metadata_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;historical&quot;</span><span class="p">,</span> <span class="s2">&quot;bootstrapped&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="s2">&quot;depends_on, produces&quot;</span><span class="p">,</span>
+    <span class="n">specifications</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">task_swap_payout</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">):</span>
+    <span class="c1"># initialize</span>
+    <span class="n">swap_config_id</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">payout_data_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">meta_data_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># parse json data</span>
+    <span class="n">swap_config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+        <span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;swap_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">scenario_config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+        <span class="n">depends_on</span><span class="p">[</span><span class="s2">&quot;scenario_config&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># calculate payout for all configurations</span>
+    <span class="k">for</span> <span class="n">leverage</span> <span class="ow">in</span> <span class="n">swap_config</span><span class="p">[</span><span class="s2">&quot;leverage&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">USD_asset_allocation</span> <span class="ow">in</span> <span class="n">swap_config</span><span class="p">[</span><span class="s2">&quot;USD_asset_allocation&quot;</span><span class="p">]:</span>
+
+            <span class="c1"># load files</span>
+            <span class="n">raw_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">depends_on</span><span class="p">[</span><span class="s1">&#39;simulated_data&#39;</span><span class="p">])</span>
+
+            <span class="c1"># simulate payout given parameterization</span>
+            <span class="n">cumulative_change</span> <span class="o">=</span> <span class="n">get_total_exchange_rate_change</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+            <span class="n">payout</span> <span class="o">=</span> <span class="n">calc_final_payout</span><span class="p">(</span>
+                <span class="n">cumulative_change</span><span class="p">,</span> <span class="n">leverage</span><span class="p">,</span> <span class="n">USD_asset_allocation</span><span class="p">,</span> <span class="n">scenario_config</span>
+            <span class="p">)</span>
+            <span class="n">payout</span><span class="p">[</span><span class="s2">&quot;swap_config_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">swap_config_id</span>
+            <span class="n">payout_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">payout</span><span class="p">)</span>
+
+            <span class="c1"># save metadata</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">filename_to_metadata</span><span class="p">(</span>
+                <span class="n">swap_config_id</span><span class="p">,</span> <span class="n">leverage</span><span class="p">,</span> <span class="n">USD_asset_allocation</span>
+            <span class="p">)</span>
+            <span class="n">meta_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+
+            <span class="n">swap_config_id</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># append datafiles</span>
+    <span class="n">payout_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">payout_data_list</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;swap_config_id&quot;</span><span class="p">)</span>
+    <span class="n">meta_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">meta_data_list</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;swap_config_id&quot;</span><span class="p">)</span>
+
+    <span class="c1"># save files</span>
+    <span class="n">generate_missing_directories</span><span class="p">(</span><span class="n">produces</span><span class="p">)</span>
+    <span class="n">payout_data</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">produces</span><span class="p">[</span><span class="s1">&#39;payout_data&#39;</span><span class="p">])</span>
+    <span class="n">meta_data</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">produces</span><span class="p">[</span><span class="s1">&#39;meta_data&#39;</span><span class="p">])</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">simulation_name</span> <span class="o">=</span> <span class="s2">&quot;bootstrapped&quot;</span>
+    <span class="n">depends_on</span> <span class="o">=</span>         <span class="p">{</span>
+            <span class="s2">&quot;simulated_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_data_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;simulation_name&quot;</span><span class="p">:</span> <span class="n">simulation_name</span><span class="p">,</span>
+            <span class="s2">&quot;scenario_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;scenario_config.json&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;swap_config&quot;</span><span class="p">:</span> <span class="n">SRC</span> <span class="o">/</span> <span class="s2">&quot;contract_specs&quot;</span> <span class="o">/</span> <span class="s2">&quot;swap_config.json&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">produces</span> <span class="o">=</span>   <span class="p">{</span>
+            <span class="s2">&quot;payout_data&quot;</span><span class="p">:</span> <span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;simulated_payout&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;simulated_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;meta_data&quot;</span><span class="p">:</span><span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;metadata&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;metadata_payout_</span><span class="si">{</span><span class="n">simulation_name</span><span class="si">}</span><span class="s2">.pickle&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+
+    <span class="n">task_swap_payout</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>

@@ -71,3 +71,5 @@ ___*
 !.pre-commit-config.yaml
 env
 workspace.*
+src/paper/
+!research_pres_30min.pdf

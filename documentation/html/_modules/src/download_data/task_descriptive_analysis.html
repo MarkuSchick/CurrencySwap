@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.download_data.task_descriptive_analysis &#8212; Currency Swap  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>Currency Swap  documentation</span></a></h1>
+        <h2 class="heading"><span>src.download_data.task_descriptive_analysis</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for src.download_data.task_descriptive_analysis</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">mticker</span>
+<span class="kn">import</span> <span class="nn">pytask</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+
+<span class="kn">from</span> <span class="nn">src.config</span> <span class="kn">import</span> <span class="n">BLD</span>
+
+<span class="n">PLOT_ARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;markersize&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="plot_historical_timeseries"><a class="viewcode-back" href="../../../download_data.html#src.download_data.task_descriptive_analysis.plot_historical_timeseries">[docs]</a><span class="k">def</span> <span class="nf">plot_historical_timeseries</span><span class="p">(</span><span class="n">euro_usd_pd</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot the historical EURO / USD exchange rate and percentage returns</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        euro_usd_pd (pd.DataFrame): daily EURO / USD data (must include price,</span>
+<span class="sd">                                     pct_change and date as index).</span>
+<span class="sd">        path (string): path to output graph.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># load data to dataframe</span>
+    <span class="n">euro_usd_pd</span> <span class="o">=</span> <span class="n">euro_usd_pd</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;Price&quot;</span><span class="p">,</span> <span class="s2">&quot;pct_change&quot;</span><span class="p">:</span> <span class="s2">&quot;Return&quot;</span><span class="p">})</span>
+    <span class="n">euro_usd_pd</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">euro_usd_pd</span><span class="o">.</span><span class="n">index</span>
+
+    <span class="c1"># set up multiple graphs</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># fig.suptitle(&quot;EURO/USD exchange rate&quot;)</span>
+
+    <span class="c1"># plot EURO/USD price</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelbottom</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s2">&quot;azure&quot;</span><span class="p">)</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Price&quot;</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">euro_usd_pd</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># remove x label</span>
+
+    <span class="c1"># plot EURO/USD (percentage) returns</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelbottom</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s2">&quot;azure&quot;</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.04</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">))</span>
+
+    <span class="n">ylabels</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">get_yticks</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_locator</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FixedLocator</span><span class="p">(</span><span class="n">ylabels</span><span class="p">))</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">,.2%</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ylabels</span><span class="p">])</span>  <span class="c1"># format y axis</span>
+
+    <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span>
+        <span class="n">x</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span>
+        <span class="n">y</span><span class="o">=</span><span class="s2">&quot;Return&quot;</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">euro_usd_pd</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># remove x label</span>
+
+    <span class="c1"># save result to folder</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">depends_on</span><span class="p">(</span><span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;historical_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;raw_data.pickle&quot;</span><span class="p">)</span>
+<span class="nd">@pytask</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">produces</span><span class="p">(</span><span class="n">BLD</span> <span class="o">/</span> <span class="s2">&quot;figures&quot;</span> <span class="o">/</span> <span class="s2">&quot;euro_usd_timeseries.png&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">task_descriptive_analysis</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="n">produces</span><span class="p">):</span>
+
+    <span class="c1"># Load locations after each round</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">depends_on</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">plot_historical_timeseries</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">produces</span><span class="p">)</span>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+        <p>
+        <a class="uplink" href="../../../index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021-, Markus Schick.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.1.
+    </div>
+  </body>
+</html>
