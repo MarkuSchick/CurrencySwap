@@ -1,6 +1,10 @@
 # Requirements
 Finished the step "Preparing your system" from https://econ-project-templates.readthedocs.io/en/stable/getting_started.html#preparing-your-system.
 
+# Create a new folder
+`mkdir currency_swap`
+`cd currency_swap`
+
 # Install the environment:
 Create the environment by writing
 `conda env create -f environment.yml`
