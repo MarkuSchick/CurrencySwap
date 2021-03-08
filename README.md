@@ -22,15 +22,14 @@ and go to folder
 
 # Run the project:
 
-Type
+Add folder to path:
 
 `conda develop .`
 
+run all tasks with:
+
 `pytask`
 
-
-to run the project.
-You might have to run the last command a couple of times to build all dependencies!
 
 # Documentation
 
