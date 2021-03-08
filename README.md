@@ -1,9 +1,15 @@
 # Requirements
 Finished the step "Preparing your system" from https://econ-project-templates.readthedocs.io/en/stable/getting_started.html#preparing-your-system.
 
-# Create a new folder
-`mkdir currency_swap`
+# Clone the project
+Clone the project
+
+`git clone https://github.com/SchickMarkus/currency_swap.git`
+
+and go to folder
+
 `cd currency_swap`
+
 
 # Install the environment:
 Create the environment by writing
@@ -14,15 +20,6 @@ Create the environment by writing
 Active the environment by typing
 
 `conda activate currency_swap`
-
-# Clone the project
-Clone the project
-
-`git clone https://github.com/SchickMarkus/currency_swap.git`
-
-and go to folder
-
-`cd currency_swap`
 
 # Run the project:
 
